@@ -33,7 +33,7 @@ class ServerRepository {
         return this.dao.run(
             `INSERT INTO servers (players, words, usedwords,currentwords, skippedwords,name,score,guesser,team1,team2,state)
             VALUES (?, ?, ?, ?, ?, ?, ?,?,?,?,?)`,
-            [JSON.stringify([]), JSON.stringify([]), JSON.stringify([]), JSON.stringify(""), JSON.stringify([]), name, "0-0"], null, null, null, JSON.stringify("WAIT_FOR_PLAYERS"));
+            [JSON.stringify([]), JSON.stringify([]), JSON.stringify([]), JSON.stringify(""), JSON.stringify([]), name, "0-0", "1-1", null, null, JSON.stringify("WAIT_FOR_PLAYERS")]);
     }
     join(playerID, serverID) {
         let playerList = this.dao.get(
@@ -134,6 +134,28 @@ class ServerRepository {
                 }
             })
     }
+    skipWord(id,callback,end=false) {
+        //Move currentword to skippedwords array
+        this.dao.get(
+            `SELECT currentwords,skippedwords FROM servers WHERE id = ?`,
+            [id]).then(data => {
+                let word=data.currentwords;
+                let skipped=JSON.parse(data.skippedwords);
+                if (skipped==null) {
+                    skipped=[];
+                }
+                skipped.push(JSON.parse(word));
+                console.log(skipped);
+                this.dao.run(`UPDATE servers SET currentwords = ?,skippedwords = ? WHERE id = ?`,
+                [null,JSON.stringify(skipped), id]
+                ).then(() => {
+                    if (!end)
+                    this.nextWord(id,callback);
+                })
+
+            });
+        //Purge currentword
+    }
     endGame(serverID) {
     }
     startGame(serverID) {
@@ -159,29 +181,32 @@ class ServerRepository {
     }
     ready(serverID,callback) {
         this.dao.get(
-            `SELECT state FROM servers WHERE id = ?`,
+            `SELECT state,guesser FROM servers WHERE id = ?`,
             [serverID]).then(data => {
             let state = JSON.parse(data.state);
+            let score=data.guesser.split("-");
             if (state=="TEAM1_GUESS") {
                 state="TEAM2_GUESS";
+                score[0]=Number(score[0])+1;
             } else if (state=="TEAM2_GUESS") {
                 state="TEAM1_GUESS";
+                score[1]=Number(score[1])+1;
             } else {
                 state="TEAM1_GUESS";
+                score[0]=Number(score[0])+1;
                 if (Math.random()>=.5) {
                     state="TEAM2_GUESS";
+                    score[1]=Number(score[1])+1;
                 }
             }
-            let value=this.dao.run(`UPDATE servers SET state = ? WHERE id = ?`,
-                [JSON.stringify(state), serverID]
+            let value=this.dao.run(`UPDATE servers SET state = ?,guesser = ? WHERE id = ?`,
+                [JSON.stringify(state),score.join("-"), serverID]
             ).then(() => {
                 callback(state);
             })
         })
     }
-    endGuess(serverID) {
 
-    }
     makeTeams(serverID) {
         this.dao.get(
             `SELECT players FROM servers WHERE id = ?`,
@@ -205,7 +230,7 @@ class ServerRepository {
             } else {
                 let first=players.slice(0,Math.floor(players.length/2));
                 let second=players.slice(Math.floor(players.length/2));
-                // console.log(first);
+                console.log(first);
                 this.dao.run(`UPDATE servers SET team1 = ?, team2 = ? WHERE id = ?`,
                 [JSON.stringify(first),JSON.stringify(second), serverID]
                 ).then(data => {
@@ -213,11 +238,6 @@ class ServerRepository {
                 });
             }
         })
-    }
-    getWord(id) {
-        
-        
-
     }
     getAll() {
         return this.dao.run(

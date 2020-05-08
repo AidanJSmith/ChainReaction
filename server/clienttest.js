@@ -2,7 +2,7 @@ const WebSocket = require('ws')
 const url = 'ws://localhost:8081'
 const connection = new WebSocket(url)
 const userRegExample = {
-    "type": "wordCorrect",
+    "type": "ready",
     "name":"AYsdasdasssAssN",
     "id":"1"
 }

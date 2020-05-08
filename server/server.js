@@ -45,7 +45,8 @@ wss.on('connection', ws => {
             db.wordCorrect(message.id,sendWord);
             break;
         case "skipWord":
-            db.wordSkip(message.id);
+            db.skipWord(message.id,sendWord);
+            break;
           // code block
         case "newGame":
             //Eventually check to see if game exists already
@@ -61,6 +62,7 @@ wss.on('connection', ws => {
             
             break;
         case "unready":
+            db.unready(message.id);
             wss.broadcast(JSON.stringify({"type":"stateUpdate","state" : "WAITING_FOR_PLAYERS"}));
             break;
         case "switchTeams":
