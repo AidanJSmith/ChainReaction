@@ -2,7 +2,7 @@ const WebSocket = require('ws')
 const url = 'ws://localhost:8081'
 const connection = new WebSocket(url)
 const userRegExample = {
-    "type": "ready",
+    "type": "wordCorrect",
     "name":"AYsdasdasssAssN",
     "id":"1"
 }
@@ -23,7 +23,7 @@ const serverRegExample = {
 }
 connection.onopen = () => {
     connection.send(JSON.stringify(wordRegExample));
-    connection.send(JSON.stringify(wordRegExample2));
+   // connection.send(JSON.stringify(wordRegExample2));
   
     setTimeout(()=> {connection.send(JSON.stringify(userRegExample))},200);
 }

@@ -42,10 +42,10 @@ wss.on('connection', ws => {
             db.nextWord(message.id,sendWord);
             break;
         case "wordCorrect":
-            break;
-        case "wordIncorrect":
+            db.wordCorrect(message.id,sendWord);
             break;
         case "skipWord":
+            db.wordSkip(message.id);
           // code block
         case "newGame":
             //Eventually check to see if game exists already
@@ -54,7 +54,7 @@ wss.on('connection', ws => {
         case "ready":
             //Go to next round. MasterUser On Each Team Has the ability to do this.
             function callback(state) {
-                wss.broadcast(JSON.stringify({"type":"stateUpdate","state" : state}));
+                wss.broadcast(JSON.stringify({"type":"stateUpdate","state" : state})); //Do something with the current word here as well.
                 db.nextWord(message.id,sendWord);
             }
             db.ready(message.id,callback);

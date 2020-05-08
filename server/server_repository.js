@@ -139,6 +139,24 @@ class ServerRepository {
     startGame(serverID) {
         
     }
+    wordCorrect(id,callback) {
+        this.dao.get(
+            `SELECT state,score FROM servers WHERE id = ?`,
+            [id]).then(data => {
+                console.log(data);
+                let score=data.score.split("-");
+                if (JSON.parse(data.state)=="TEAM1_GUESS") {
+                    score[0]=Number(score[0])+1;
+                } else {
+                    score[1]=Number(score[1])+1;
+                }
+                let value=this.dao.run(`UPDATE servers SET score = ? WHERE id = ?`,
+                [score.join("-"), id]
+                ).then(() => {
+                    this.nextWord(id,callback);
+                })
+            });
+    }
     ready(serverID,callback) {
         this.dao.get(
             `SELECT state FROM servers WHERE id = ?`,
@@ -196,7 +214,6 @@ class ServerRepository {
             }
         })
     }
-    
     getWord(id) {
         
         
