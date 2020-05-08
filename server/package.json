@@ -23,6 +23,7 @@
   "homepage": "https://github.com/n/a#readme",
   "dependencies": {
     "bluebird": "^3.7.2",
-    "sqlite3": "^4.2.0"
+    "sqlite3": "^4.2.0",
+    "ws": "^7.2.5"
   }
 }
