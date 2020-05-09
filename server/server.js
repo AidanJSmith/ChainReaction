@@ -24,8 +24,8 @@ function sendWord(word,id,currentTeam) {
 }
 
 wss.on('connection', ws => {
-    
   ws.on('message', message => {
+    console.log(message);
     message=JSON.parse(message);
     switch(message.type) {
         case "signup":
@@ -48,14 +48,22 @@ wss.on('connection', ws => {
             db.skipWord(message.id,sendWord);
             break;
           // code block
+        case "getIDbyName":
+            function newFunc(message) {
+                ws.send(JSON.stringify({type:"updateID",id:message}));
+            }
+            db.getID(message.name,newFunc);
+            break;
+        case "heartBeat":
+            break;
         case "newGame":
             //Eventually check to see if game exists already
             db.create(message.name);
             break;
         case "ready":
             //Go to next round. MasterUser On Each Team Has the ability to do this.
-            function callback(state) {
-                wss.broadcast(JSON.stringify({"type":"stateUpdate","state" : state})); //Do something with the current word here as well.
+            function callback(state,score) {
+                wss.broadcast(JSON.stringify({"type":"stateUpdate","state" : state,"score":score})); //Do something with the current word here as well.
                 db.nextWord(message.id,sendWord);
             }
             db.ready(message.id,callback);
@@ -69,10 +77,10 @@ wss.on('connection', ws => {
             db.makeTeams(message.id);
             break;
         default:
-            console.error("There was an error in that query.");
+            console.error(JSON.stringify({"type":"err"}));
             
         
       } 
   })
-  ws.send('Connected.')
+  ws.send(JSON.stringify({"type":"startup"}))
 })

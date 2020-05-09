@@ -17,7 +17,9 @@ class ServerRepository {
         team1 TEXT,
         team2 TEXT,
         state TEXT,
-        name TEXT)`
+        name TEXT,
+        UNIQUE(name)
+        )`
         return this.dao.run(sql)
     }
     /*
@@ -31,7 +33,7 @@ class ServerRepository {
     */
     create(name) { //Add handling to cut out duplicates.
         return this.dao.run(
-            `INSERT INTO servers (players, words, usedwords,currentwords, skippedwords,name,score,guesser,team1,team2,state)
+            `INSERT OR IGNORE INTO servers (players, words, usedwords,currentwords, skippedwords,name,score,guesser,team1,team2,state)
             VALUES (?, ?, ?, ?, ?, ?, ?,?,?,?,?)`,
             [JSON.stringify([]), JSON.stringify([]), JSON.stringify([]), JSON.stringify(""), JSON.stringify([]), name, "0-0", "1-1", null, null, JSON.stringify("WAIT_FOR_PLAYERS")]);
     }
@@ -52,8 +54,8 @@ class ServerRepository {
             } else {
                 // console.log(data.players + "NEW");
                 let newdata = JSON.parse(data.players);
-                // console.log(newdata)
-                if (playerID in newdata) {
+                console.log(newdata+"  x"+newdata.length + playerID)
+                if (newdata.includes(playerID)) {
                     // console.log("AGAIN")
                     return -1;
                 } else {
@@ -202,7 +204,7 @@ class ServerRepository {
             let value=this.dao.run(`UPDATE servers SET state = ?,guesser = ? WHERE id = ?`,
                 [JSON.stringify(state),score.join("-"), serverID]
             ).then(() => {
-                callback(state);
+                callback(state,score.join("-"));
             })
         })
     }
@@ -243,6 +245,13 @@ class ServerRepository {
         return this.dao.run(
             `SELECT * FROM servers`,
         )
+    }
+    getID(name,extraFunc) {
+        this.dao.get(
+            `SELECT id FROM servers WHERE name= ?`,[name]).then(data=>{
+                console.log(data.id);
+                extraFunc(data.id);
+            })
     }
 
 }
