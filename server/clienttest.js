@@ -7,7 +7,7 @@ const userRegExample = {
     "id":"1"
 }
 const wordRegExample = {
-    "type": "addWord",
+    "type": "switchTeams",
     "word":"hemoglobin",
     "id":"1"
 }
@@ -25,7 +25,7 @@ connection.onopen = () => {
     connection.send(JSON.stringify(wordRegExample));
    // connection.send(JSON.stringify(wordRegExample2));
   
-    setTimeout(()=> {connection.send(JSON.stringify(userRegExample))},200);
+    //setTimeout(()=> {connection.send(JSON.stringify(userRegExample))},200);
 }
 
 connection.onerror = (error) => {

@@ -31,12 +31,10 @@ wss.on('connection', ws => {
         case "signup":
             console.log("JOINED: " + message.name)
             db.join(message.name,message.id);
-            ws.send("OK"); //Eventually send all the current info about the game.
             break;
         case "addWord":
           console.log("WORD ADDED: " + message.word);
           db.addWord(message.word,message.id)
-          ws.send("OK");
           break;
         case "nextWord":
             db.nextWord(message.id,sendWord);
@@ -74,8 +72,19 @@ wss.on('connection', ws => {
             wss.broadcast(JSON.stringify({"type":"stateUpdate","state" : "WAITING_FOR_PLAYERS"}));
             break;
         case "switchTeams":
-            db.makeTeams(message.id);
+            function precallback() {
+                function recall(message) {
+                    wss.broadcast(JSON.stringify({type:"updateState",data:message}));
+                } 
+                db.getMyServer(message.id,recall);
+            }
+            db.makeTeams(message.id,precallback);
             break;
+        case "getData":
+            function recall(message) {
+                wss.broadcast(JSON.stringify({type:"updateState",data:message}));
+            } 
+            db.getMyServer(message.id,recall);
         default:
             console.error(JSON.stringify({"type":"err"}));
             

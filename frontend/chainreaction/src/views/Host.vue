@@ -69,7 +69,7 @@ export default {
   display: flex;
   align-items: center;
   vertical-align: middle;
-  transform: translateY(120%);
+  transform: translateY(10vw);
   justify-content: center;
 }
 .enter {

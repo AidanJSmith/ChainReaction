@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <v-content>
+    <v-content class="bkg">
       <router-view></router-view>
     </v-content>
   </v-app>
@@ -14,3 +14,9 @@ export default {
   }),
 };
 </script>
+<style lang="scss">
+.bkg {
+    background: rgb(96, 247, 209);
+} 
+ 
+</style>

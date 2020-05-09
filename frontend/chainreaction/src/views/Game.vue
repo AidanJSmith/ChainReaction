@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <div class="aligner" v-if="!playerName">
+    <div class="aligner" v-if="game == null">
       <v-col>
         <v-row>
           <div class="wrapper logo  mx-auto">
@@ -12,7 +12,7 @@
         </v-row>
         <v-col cols="12" sm="6" md="3" class="mx-auto enter">
           <v-row>
-            <v-col cols="12" sm="6" md="3" class="mx-auto enter">
+            <v-col cols="2" sm="3" md="4" class="mx-auto enter">
               <v-text-field
                 cl
                 class="enter"
@@ -29,8 +29,62 @@
         </v-col>
       </v-col>
     </div>
-    <div v-else>
-      We need a ready button in the button right-hand corner, a list of joined players, a shuffle teams button, a title, and the lists of both teams.
+    <div v-else-if="JSON.parse(game.state) == `WAIT_FOR_PLAYERS`">
+      <div class="aligner-2">
+        <v-col>
+          <v-row>
+            <div class="wrapper logo  mx-auto">
+              <h1 class="display-3 mx-auto font-weight-black logo">
+                CHAIN REACTION
+              </h1>
+              <h3 class="display-1 mx-auto logo">v.01</h3>
+            </div>
+          </v-row>
+          <v-col cols="12" sm="6" md="3" class="mx-auto enter">
+            <v-row>
+              <v-btn x-large depressed @click="createGame()" class="mx-auto"
+                >Shuffle Teams</v-btn
+              >
+              <v-btn x-large depressed @click="createGame()" class="mx-auto"
+                >START GAME (global)</v-btn
+              >
+            </v-row>
+            <v-row>
+              <div class="mx-auto">
+                <br />
+                <div class="db mediumScalar">Current players:</div>
+                <b class="db mediumScalar">{{ JSON.parse(game.players).join(", ") }}</b>
+              </div>
+            </v-row>
+            <v-row>
+              <div class="mx-auto">
+                <v-row cols="2" sm="1" md="3">
+                  <v-col>
+                    <div class="smallScalar">
+                    Team 1:
+                    {{
+                      game.team1 != null
+                        ? JSON.parse(game.team1).join(", ")
+                        : "loading"
+                    }}
+                    </div>
+                  </v-col>
+                  <v-col>
+                    <div class="smallScalar">
+                    Team 2:
+                    {{
+                      game.team1 != null
+                        ? JSON.parse(game.team2).join(", ")
+                        : "loading"
+                    }}
+                    </div>
+                  </v-col>
+                </v-row>
+              </div>
+            </v-row>
+          </v-col>
+        </v-col>
+      </div>
     </div>
   </div>
 </template>
@@ -47,29 +101,32 @@ export default {
       firstRun: true,
       playerName: false,
       myName: "",
-      id:-1
+      id: -1,
+      game: null
     };
   },
   mounted() {
     //Setup Websockets
     this.socket = new WebSocket(`ws://localhost:8081`);
-    this.socket.onopen = () => {
+    this.socket.onopen = async () => {
       console.log("SENDING ");
       let id = this.$route.params.id;
-      this.socket.send(JSON.stringify({ type: "newGame", name: id }))
+      this.socket.send(JSON.stringify({ type: "newGame", name: id }));
       //Get game ID
       this.socket.send(JSON.stringify({ type: "getIDbyName", name: id }));
       this.firstRun = false;
-    }
+    };
     this.socket.onmessage = event => {
-      let data=JSON.parse(event.data);
-      console.log(data);
-      switch(data.type) {
+      let data = JSON.parse(event.data);
+      switch (data.type) {
         case "updateID":
-          this.id=data.id;
+          this.id = data.id;
           break;
         case "startup":
           console.log("Server online.");
+          break;
+        case "updateState":
+          this.game = data.data;
           break;
         default:
           console.log(event.state);
@@ -79,15 +136,22 @@ export default {
   },
   methods: {
     join() {
-      if(this.id!=-1){
-        this.socket.send(JSON.stringify({type:"signup",name:this.myName,id:this.id}));
-        this.playerName=true;
+      if (this.id != -1) {
+        this.socket.send(
+          JSON.stringify({ type: "signup", name: this.myName, id: this.id })
+        );
+        this.playerName = true;
+        console.log("Getting data...");
+        setTimeout( () => {this.socket.send(JSON.stringify({ type: "switchTeams", id: this.id }))},200);
       }
     }
-  },
+  }
 };
 </script>
 <style lang="scss">
+.db {
+  display: inline-block;
+}
 .logo {
   margin-bottom: 3%;
   display: inline-block;
@@ -97,11 +161,25 @@ export default {
   display: flex;
   align-items: center;
   vertical-align: middle;
-  transform: translateY(120%);
+  transform: translateY(10vw);
+  justify-content: center;
+}
+
+.aligner-2 {
+  display: flex;
+  align-items: center;
+  vertical-align: middle;
+  transform: translateY(10vw);
   justify-content: center;
 }
 .enter {
   transform: scale(1.25);
+}
+.smallScalar {
+  font-size: 2vw;
+}
+.mediumScalar {
+  font-size:1.5vw;
 }
 .home {
   width: 100%;
