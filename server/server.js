@@ -56,6 +56,16 @@ wss.on('connection', ws => {
             console.log("ADDING");
             db.goAdd(message.id,precallbackee);
             break;
+        case "wordIncorrect":
+            function recallx3() {
+                function finalCallBack(message2) {
+                        wss.broadcast(JSON.stringify({type:"updateState",data:message2}));
+                }
+                console.log("FINAL")
+                db.getMyServer(message.id,finalCallBack);
+            } 
+
+            db.nextWord(message.id,recallx3,false);
         case "wordCorrect":
                           //Go to next round. MasterUser On Each Team Has the ability to do this.
             function keepcall(state, score) {
@@ -74,14 +84,16 @@ wss.on('connection', ws => {
             db.nextWord(message.id,keepcall);
             break;
         case "skipWord":
-            function calloncemore(state, score) {
-                    function finalCallBack(message2) {
+
+            function recallx2() {
+                function finalCallBack(message2) {
                         wss.broadcast(JSON.stringify({type:"updateState",data:message2}));
-                    }
-                    console.log("FINAL")
-                    db.getMyServer(message.id,finalCallBack);
-            }
-            db.skipWord(message.id,calloncemore);
+                }
+                console.log("FINAL")
+                db.getMyServer(message.id,finalCallBack);
+            } 
+
+            db.skipWord(message.id,recallx2);
             break;
           // code block
         case "getIDbyName":

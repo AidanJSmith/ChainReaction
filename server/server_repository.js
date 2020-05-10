@@ -90,7 +90,7 @@ class ServerRepository {
             });
         })
     }
-    nextWord(id, sendWord) {
+    nextWord(id, sendWord,add=true) {
         let words = (this.dao.get(
             `SELECT words,usedwords,skippedwords,currentwords FROM servers WHERE id = ?`,
             [id])).then(data => {
@@ -100,19 +100,28 @@ class ServerRepository {
             data.usedwords = JSON.parse(data.usedwords);
 
             data.skippedwords = JSON.parse(data.skippedwords);
-
             data.currentwords = JSON.parse(data.currentwords);
-            if (data.currentwords != null) {
-                data.usedwords.push(data.currentwords);
-                data.words.slice(data.words.indexOf(data.currentwords), 1);
-            }
-            console.log(data.words,data.words.length,data.usedwords,data.usedwords.length,data.skippedwords,data.skippedwords.length)
+            console.log("The current word is (time 1) " + data.words);
+            let wordCorrect=[]
+            if (data.currentwords != undefined && data.currentwords !=null) {
+                console.log("removing the current word from the main array");
+                if (add==true) {
+                    data.usedwords.push(data.currentwords);
+                }
+                for (let element of data.words) {
+                    if (element!=data.currentwords) {
+                        wordCorrect.push(element);
+                    }
+                }
+                data.words=wordCorrect;
+                console.log("The current word is (time 2) " + wordCorrect);
 
+            }
             if (data.words.length == 0) {
                 if (data.skippedwords.length == 0) {
                     console.log("WARNING NULL")
-                    this.dao.run(`UPDATE servers SET words = ?, usedwords = ?, currentwords = ? WHERE id = ?`,
-                    [JSON.stringify(data.words), JSON.stringify(data.usedwords), JSON.stringify(data.currentwords), id]
+                    this.dao.run(`UPDATE servers SET words = ?, usedwords = ?, currentwords = ?, state = ? WHERE id = ?`,
+                    [JSON.stringify(data.words), JSON.stringify(data.usedwords), JSON.stringify(data.currentwords), JSON.stringify("GAME_OVER"), id]
                      ).then(data => {
                         sendWord();
                      });
@@ -120,16 +129,25 @@ class ServerRepository {
                 } else {
                     //Set regular words to skipped words, skippedwords to 0, then continue to draw a random word from the words category. 
                     data.currentwords = data.skippedwords[Math.round(data.skippedwords.length * Math.random())];
+                    while (data.currentwords==null) {
+                        console.error("wordsettingerr");
+                        data.currentwords = data.skippedwords[Math.round(data.skippedwords.length * Math.random())];
+                    }
                     this.dao.run(`UPDATE servers SET words = ?, skippedwords = ?,usedwords = ?, currentwords = ? WHERE id = ?`,
                         [JSON.stringify(data.skippedwords), JSON.stringify([]), JSON.stringify(data.usedwords), JSON.stringify(data.currentwords), id]
                     ).then(data => {
-                                console.log(currentword + "  CURRENT");
+                                console.log(data.currentwords + "  CURRENT");
                                 sendWord();
                     });
                 }
             } else {
                 data.currentwords = data.words[Math.round(data.words.length * Math.random())];
+                while (data.currentwords==null) {
+                    console.error("wordsettingerr");
+                    data.currentwords = data.words[Math.round(data.words.length * Math.random())];
+                }
                 let currentword = data.currentwords;
+                console.log("The current word is " + currentword);
                 this.dao.run(`UPDATE servers SET words = ?, usedwords = ?, currentwords = ? WHERE id = ?`,
                     [JSON.stringify(data.words), JSON.stringify(data.usedwords), JSON.stringify(data.currentwords), id]
                 ).then(data => {
@@ -140,6 +158,7 @@ class ServerRepository {
     }
     skipWord(id, callback, end = false) {
         //Move currentword to skippedwords array
+        console.log("skipping")
         this.dao.get(
             `SELECT currentwords,skippedwords FROM servers WHERE id = ?`,
             [id]).then(data => {
@@ -150,11 +169,11 @@ class ServerRepository {
             }
             skipped.push(JSON.parse(word));
             console.log(skipped);
-            this.dao.run(`UPDATE servers SET currentwords = ?,skippedwords = ? WHERE id = ?`,
-                [null, JSON.stringify(skipped), id]
+            this.dao.run(`UPDATE servers SET skippedwords = ? WHERE id = ?`,
+                [JSON.stringify(skipped), id]
             ).then(() => {
-                if (!end)
-                    this.nextWord(id, callback);
+                console.log("phase 2")
+                 this.nextWord(id, callback,false);
             })
 
         });
@@ -221,9 +240,12 @@ class ServerRepository {
                 players[i] = players[random];
                 players[random] = temp;
             }
+            players=players.filter(function(e){return e}); 
             if (players.length % 2 == 0) {
                 let first = players.slice(0, players.length / 2);
+                first=first.filter(function(e){return e}); 
                 let second = players.slice(players.length / 2);
+                second=second.filter(function(e){return e}); 
                 // console.log(first);
                 this.dao.run(`UPDATE servers SET team1 = ?, team2 = ? WHERE id = ?`,
                     [JSON.stringify(first), JSON.stringify(second), serverID]
@@ -233,7 +255,9 @@ class ServerRepository {
                 });
             } else {
                 let first = players.slice(0, Math.floor(players.length / 2));
+                first=first.filter(function(e){return e}); 
                 let second = players.slice(Math.floor(players.length / 2));
+                second=second.filter(function(e){return e}); 
                 console.log(first);
                 this.dao.run(`UPDATE servers SET team1 = ?, team2 = ? WHERE id = ?`,
                     [JSON.stringify(first), JSON.stringify(second), serverID]
