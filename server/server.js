@@ -58,7 +58,7 @@ wss.on('connection', ws => {
             break;
         case "wordCorrect":
                           //Go to next round. MasterUser On Each Team Has the ability to do this.
-            function calloncemore(state, score) {
+            function keepcall(state, score) {
                 console.log();
                 function recall() {
                     function finalCallBack(message2) {
@@ -71,7 +71,7 @@ wss.on('connection', ws => {
                 db.wordCorrect(message.id,recall);
             }
             console.log("Working")
-            db.nextWord(message.id,calloncemore);
+            db.nextWord(message.id,keepcall);
             break;
         case "skipWord":
             function calloncemore(state, score) {
@@ -104,6 +104,7 @@ wss.on('connection', ws => {
                 db.getMyServer(message.id,recall);
             }
             db.pause(message.id,callback);
+            break;
         case "ready":
             //Go to next round. MasterUser On Each Team Has the ability to do this.
             function calloncemore(state, score) {
@@ -139,8 +140,10 @@ wss.on('connection', ws => {
                 wss.broadcast(JSON.stringify({type:"updateState",data:message}));
             } 
             db.getMyServer(message.id,recall);
+            break;
         default:
             console.error(JSON.stringify({"type":"err"}));
+            break;
             
         
       } 

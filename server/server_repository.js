@@ -178,7 +178,7 @@ class ServerRepository {
             let value = this.dao.run(`UPDATE servers SET score = ? WHERE id = ?`,
                 [score.join("-"), id]
             ).then(() => {
-                this.nextWord(id, callback);
+                callback();
             })
         });
     }
