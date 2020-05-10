@@ -131,8 +131,41 @@ wss.on('connection', ws => {
                 console.log("Next word")
                 db.ready(message.id,recall);
             }
+            function goPause(state, score) {
+                function lastCallb(message2) {
+                        wss.broadcast(JSON.stringify({type:"updateState",data:message2}));
+                }
+                console.log("Going To Pause")
+                db.getMyServer(message.id,lastCallb);
+            } 
             console.log("Working")
             db.nextWord(message.id,calloncemore);
+            setTimeout(() => {db.pause(message.id,goPause)},10000);
+            break;
+        case "readyPause":
+            console.log("ReadyPause Recieved")
+            function calloncemore(state, score) {
+                console.log();
+                function recall() {
+                    function finalCallBack(message2) {
+                         wss.broadcast(JSON.stringify({type:"updateState",data:message2}));
+                    }
+                    console.log("FINAL")
+                    db.getMyServer(message.id,finalCallBack);
+                } 
+                console.log("Next word")
+                db.ready(message.id,recall);
+            }
+            function goPause(state, score) {
+                function lastCallb(message2) {
+                        wss.broadcast(JSON.stringify({type:"updateState",data:message2}));
+                }
+                console.log("Going To Pause")
+                db.getMyServer(message.id,lastCallb);
+            } 
+            console.log("Working")
+            calloncemore();
+            setTimeout(() => {db.pause(message.id,goPause)},45000);
             break;
         case "unready":
             db.unready(message.id);

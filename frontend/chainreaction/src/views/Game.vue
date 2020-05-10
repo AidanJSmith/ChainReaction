@@ -7,7 +7,7 @@
             <h1 class="display-3 mx-auto font-weight-black logo">
               CHAIN REACTION
             </h1>
-            <h3 class="display-1 mx-auto logo">v.01</h3>
+            <h3 class="display-1 mx-auto logo">v1.03</h3>
           </div>
         </v-row>
         <v-col cols="12" sm="6" md="3" class="mx-auto enter">
@@ -37,7 +37,7 @@
               <h1 class="display-3 mx-auto font-weight-black logo">
                 CHAIN REACTION
               </h1>
-              <h3 class="display-1 mx-auto logo">v.01</h3>
+              <h3 class="display-1 mx-auto logo">v1.03</h3>
             </div>
           </v-row>
           <v-col cols="12" sm="6" md="3" class="mx-auto enter">
@@ -140,6 +140,34 @@
         </v-col>
       </div>
     </div>
+    <div v-else-if="JSON.parse(game.state) == `PAUSE`&&!(JSON.parse(game.words).length==0)">
+      <div class="aligner-2">
+        <v-col>
+          <div class="aligner-1">
+            <v-col>
+              <v-row>
+                <div class="wrapper logo mx-auto">
+                  <h1 class="display-4 mx-auto font-weight-black logo">
+                     Is everyone ready for the next round? Words left: {{JSON.parse((game.words)).length}}
+                  </h1>
+                  <h1 class="display-2 mx-auto font-weight-black logo">
+                     (The skipped words will be shuffled in at the end. Skipped: {{JSON.parse(game.skippedwords).length}})
+                  </h1>
+                </div>
+              </v-row>
+              <v-row>
+                 <v-btn x-large depressed @click="next()" class="mx-auto enter"
+                  >Did they get the last word?</v-btn
+                >
+                <v-btn x-large depressed @click="guessPause()" class="mx-auto enter"
+                  >Everybody Ready</v-btn
+                >
+              </v-row>
+            </v-col>
+          </div>
+        </v-col>
+        </div>
+    </div>
     <div
       v-else-if="
         JSON.parse(game.state) == `TEAM2_GUESS` ||
@@ -166,13 +194,7 @@
               <div class="wrapper logo mx-auto">
                 <h3
                   class="db mx-auto font-weight-black display-3"
-                  v-for="member in membersInActiveTeam
-                    .slice(0, membersInActiveTeam.indexOf(getActiveGuesser()))
-                    .concat(
-                      membersInActiveTeam.slice(
-                        1 + membersInActiveTeam.indexOf(getActiveGuesser())
-                      )
-                    )"
+                  v-for="member in (membersInActiveTeam).slice(1+membersInActiveTeam.indexOf(getActiveGuesser)).concat((membersInActiveTeam).slice(0,membersInActiveTeam.indexOf(getActiveGuesser)))"
                   :key="member"
                 >
                   {{ member }},
@@ -208,7 +230,24 @@
       </div>
       <div v-else>
         <!-- Show the other team's active players + guesser -->
+         <div class="aligner" v-if="game == null">
+            <v-col>
+              <v-row>
+                <div class="wrapper logo mx-auto">
+                  <h1 class="display-4 mx-auto font-weight-black">
+                    You are on the other team. Please be patient!
+                  </h1>
+                  <h3 class="display-1 mx-auto logo">🕰️</h3>
+                </div>
+              </v-row>
+            </v-col>
+          </div>
       </div>
+    </div>
+    <div
+      v-else-if="JSON.parse(game.state) == `GAME_OVER`||JSON.parse(game.words).length==0">
+      Good game. {{game.score}}I need more styles here... {{game.team1}}||{{game.team2}}
+
     </div>
   </div>
 </template>
@@ -289,6 +328,16 @@ export default {
           id: this.id
         })
       );
+    },
+     guessPause() {
+      this.socket.send(
+        JSON.stringify({
+          type: "readyPause",
+          id: this.id,
+          words: JSON.stringify(this.words)
+        })
+      );
+      console.log("Sent unpause.");
     },
     toGuessing() {
       this.socket.send(

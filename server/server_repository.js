@@ -207,18 +207,20 @@ class ServerRepository {
             [serverID]).then(data => {
             let state = JSON.parse(data.state);
             let score = data.guesser.split("-");
+            console.log(state);
             if (state == "TEAM1_GUESS") {
                 state = "TEAM2_GUESS";
-                score[0] = Number(score[0]) + 1;
+                score[1] = Number(score[0]) + 1;
             } else if (state == "TEAM2_GUESS") {
                 state = "TEAM1_GUESS";
-                score[1] = Number(score[1]) + 1;
+                score[0] = Number(score[1]) + 1;
             } else {
                 state = "TEAM1_GUESS";
-                score[0] = Number(score[0]) + 1;
                 if (Math.random() >= .5) {
                     state = "TEAM2_GUESS";
                     score[1] = Number(score[1]) + 1;
+                } else {
+                    score[0] = Number(score[0]) + 1;
                 }
             }
             let value = this.dao.run(`UPDATE servers SET state = ?,guesser = ? WHERE id = ?`,
