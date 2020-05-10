@@ -108,9 +108,12 @@ class ServerRepository {
                 if (add==true) {
                     data.usedwords.push(data.currentwords);
                 }
+                let found=false;
                 for (let element of data.words) {
-                    if (element!=data.currentwords) {
+                    if (element!=data.currentwords||found==true) {
                         wordCorrect.push(element);
+                    } else {
+                        found=true;
                     }
                 }
                 data.words=wordCorrect;

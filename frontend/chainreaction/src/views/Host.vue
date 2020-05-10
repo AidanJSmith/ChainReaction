@@ -47,10 +47,8 @@ export default {
         return "";
       }
       if (pattern.test(value) == true) {
-        console.log("EE");
         return "Please remove whitespace and special characters.";
       }
-      console.log(value);
       return true;
     },
     createGame() {

@@ -7,7 +7,7 @@
             <h1 class="display-3 mx-auto font-weight-black logo">
               CHAIN REACTION
             </h1>
-            <h3 class="display-1 mx-auto logo">v1.03</h3>
+            <h3 class="display-1 mx-auto logo">v1.04</h3>
           </div>
         </v-row>
         <v-col cols="12" sm="6" md="3" class="mx-auto enter">
@@ -37,7 +37,7 @@
               <h1 class="display-3 mx-auto font-weight-black logo">
                 CHAIN REACTION
               </h1>
-              <h3 class="display-1 mx-auto logo">v1.03</h3>
+              <h3 class="display-1 mx-auto logo">v1.04</h3>
             </div>
           </v-row>
           <v-col cols="12" sm="6" md="3" class="mx-auto enter">
@@ -268,7 +268,7 @@
           JSON.parse(game.words).length == 0
       "
     >
-      <div class="aligner" v-if="game == null">
+      <div class="aligner">
         <v-col>
           <v-row>
             <div class="wrapper logo mx-auto">
@@ -484,12 +484,12 @@ export default {
     },
     winner() {
       let score = this.game.score;
-      if (Number(score.split("-")[0]) > Number(score.split("-")[1])) {
-        return 1;
-      } else if (Number(score.split("-")[1]) > Number(score.split("-")[2])) {
-        return 2;
-      } else {
-        return "tie";
+        if (Number(score.split("-")[0]) > Number(score.split("-")[1])) {
+          return 1;
+        } else if (Number(score.split("-")[1]) > Number(score.split("-")[0])) {
+          return 2;
+        } else {
+          return "tie";
       }
     },
     membersInActiveTeam() {
