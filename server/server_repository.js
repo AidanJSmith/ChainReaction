@@ -106,9 +106,16 @@ class ServerRepository {
                 data.usedwords.push(data.currentwords);
                 data.words.slice(data.words.indexOf(data.currentwords), 1);
             }
-            if (data.words.length == data.usedwords.length + data.skippedwords.length) {
+            console.log(data.words,data.words.length,data.usedwords,data.usedwords.length,data.skippedwords,data.skippedwords.length)
+
+            if (data.words.length == 0) {
                 if (data.skippedwords.length == 0) {
                     console.log("WARNING NULL")
+                    this.dao.run(`UPDATE servers SET words = ?, usedwords = ?, currentwords = ? WHERE id = ?`,
+                    [JSON.stringify(data.words), JSON.stringify(data.usedwords), JSON.stringify(data.currentwords), id]
+                     ).then(data => {
+                        sendWord();
+                     });
                     return null;
                 } else {
                     //Set regular words to skipped words, skippedwords to 0, then continue to draw a random word from the words category. 
@@ -116,11 +123,8 @@ class ServerRepository {
                     this.dao.run(`UPDATE servers SET words = ?, skippedwords = ?,usedwords = ?, currentwords = ? WHERE id = ?`,
                         [JSON.stringify(data.skippedwords), JSON.stringify([]), JSON.stringify(data.usedwords), JSON.stringify(data.currentwords), id]
                     ).then(data => {
-                        this.dao.get(
-                            `SELECT state FROM servers WHERE id = ?`,
-                            [id]).then(data => {
-                            return sendWord(currentword, id, JSON.parse(data.state));
-                        })
+                                console.log(currentword + "  CURRENT");
+                                sendWord();
                     });
                 }
             } else {
@@ -129,11 +133,7 @@ class ServerRepository {
                 this.dao.run(`UPDATE servers SET words = ?, usedwords = ?, currentwords = ? WHERE id = ?`,
                     [JSON.stringify(data.words), JSON.stringify(data.usedwords), JSON.stringify(data.currentwords), id]
                 ).then(data => {
-                    this.dao.get(
-                        `SELECT state FROM servers WHERE id = ?`,
-                        [id]).then(data => {
-                        return sendWord(currentword, id, JSON.parse(data.state));
-                    })
+                    sendWord();
                 });
             }
         })
@@ -182,7 +182,7 @@ class ServerRepository {
             })
         });
     }
-    ready(serverID, callback) {
+    ready(serverID, sallback) {
         this.dao.get(
             `SELECT state,guesser FROM servers WHERE id = ?`,
             [serverID]).then(data => {
@@ -205,7 +205,7 @@ class ServerRepository {
             let value = this.dao.run(`UPDATE servers SET state = ?,guesser = ? WHERE id = ?`,
                 [JSON.stringify(state), score.join("-"), serverID]
             ).then(() => {
-                callback(state, score.join("-"));
+                sallback();
             })
         })
     }
@@ -215,7 +215,6 @@ class ServerRepository {
             `SELECT players FROM servers WHERE id = ?`,
             [serverID]).then(data => {
             let players = JSON.parse(data.players);
-            console.log(players + "these are the players");
             for (let i = 0; i < players.length; i++) {
                 let random = Math.round(Math.random() * players.length);
                 let temp = players[i];
@@ -248,6 +247,12 @@ class ServerRepository {
     goAdd(id,precallback) {
         this.dao.run(`UPDATE servers SET state = ? WHERE id = ?`,
         [JSON.stringify("ADD_WORDS"), id]
+        ).then(data => {
+            precallback(data)});
+    }
+    pause(id,precallback) {
+        this.dao.run(`UPDATE servers SET state = ? WHERE id = ?`,
+        [JSON.stringify("PAUSE"), id]
         ).then(data => {
             precallback(data)});
     }

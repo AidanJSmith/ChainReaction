@@ -10,7 +10,6 @@ const dao = new AppDAO('./database.sqlite3')
 const db = new ServerRepository(dao)
 db.createTable();
 wss.broadcast = function broadcast(msg) {
-    console.log(msg);
     wss.clients.forEach(function each(client) {
         client.send(msg);
      });
@@ -25,8 +24,8 @@ function sendWord(word,id,currentTeam) {
 
 wss.on('connection', ws => {
   ws.on('message', message => {
-    console.log(message);
     message=JSON.parse(message);
+    console.log(message);
     switch(message.type) {
         case "signup":
             console.log("JOINED: " + message.name)
@@ -37,22 +36,52 @@ wss.on('connection', ws => {
           db.addWords(message.id,message.words)
           break;
         case "nextWord":
-            db.nextWord(message.id,sendWord);
+            function calloncemore(state, score) {
+                    function finalCallBack(message2) {
+                         wss.broadcast(JSON.stringify({type:"updateState",data:message2}));
+                    }
+                    console.log("FINAL")
+                    db.getMyServer(message.id,finalCallBack);
+            }
+            db.nextWord(message.id,calloncemore);
             break;
         case "goAdd":
-            function precallback() {
+            function precallbackee() {
                 function recall(message2) {
                     wss.broadcast(JSON.stringify({type:"updateState",data:message2}));
                 } 
                 db.getMyServer(message.id,recall);
+                console.log("ADDING");
             }
-            db.goAdd(message.id,precallback);
+            console.log("ADDING");
+            db.goAdd(message.id,precallbackee);
             break;
         case "wordCorrect":
-            db.wordCorrect(message.id,sendWord);
+                          //Go to next round. MasterUser On Each Team Has the ability to do this.
+            function calloncemore(state, score) {
+                console.log();
+                function recall() {
+                    function finalCallBack(message2) {
+                         wss.broadcast(JSON.stringify({type:"updateState",data:message2}));
+                    }
+                    console.log("FINAL")
+                    db.getMyServer(message.id,finalCallBack);
+                } 
+                console.log("Next word")
+                db.wordCorrect(message.id,recall);
+            }
+            console.log("Working")
+            db.nextWord(message.id,calloncemore);
             break;
         case "skipWord":
-            db.skipWord(message.id,sendWord);
+            function calloncemore(state, score) {
+                    function finalCallBack(message2) {
+                        wss.broadcast(JSON.stringify({type:"updateState",data:message2}));
+                    }
+                    console.log("FINAL")
+                    db.getMyServer(message.id,finalCallBack);
+            }
+            db.skipWord(message.id,calloncemore);
             break;
           // code block
         case "getIDbyName":
@@ -67,14 +96,30 @@ wss.on('connection', ws => {
             //Eventually check to see if game exists already
             db.create(message.name);
             break;
+        case "pause":
+            function precallback() {
+                function recall(message2) {
+                    wss.broadcast(JSON.stringify({type:"updateState",data:message2}));
+                } 
+                db.getMyServer(message.id,recall);
+            }
+            db.pause(message.id,callback);
         case "ready":
             //Go to next round. MasterUser On Each Team Has the ability to do this.
-            function callback(state,score) {
-                wss.broadcast(JSON.stringify({"type":"stateUpdate","state" : state,"score":score})); //Do something with the current word here as well.
-                db.nextWord(message.id,sendWord);
+            function calloncemore(state, score) {
+                console.log();
+                function recall() {
+                    function finalCallBack(message2) {
+                         wss.broadcast(JSON.stringify({type:"updateState",data:message2}));
+                    }
+                    console.log("FINAL")
+                    db.getMyServer(message.id,finalCallBack);
+                } 
+                console.log("Next word")
+                db.ready(message.id,recall);
             }
-            db.ready(message.id,callback);
-            
+            console.log("Working")
+            db.nextWord(message.id,calloncemore);
             break;
         case "unready":
             db.unready(message.id);

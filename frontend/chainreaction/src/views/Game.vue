@@ -3,7 +3,7 @@
     <div class="aligner" v-if="game == null">
       <v-col>
         <v-row>
-          <div class="wrapper logo  mx-auto">
+          <div class="wrapper logo mx-auto">
             <h1 class="display-3 mx-auto font-weight-black logo">
               CHAIN REACTION
             </h1>
@@ -33,7 +33,7 @@
       <div class="aligner-2">
         <v-col>
           <v-row>
-            <div class="wrapper logo  mx-auto">
+            <div class="wrapper logo mx-auto">
               <h1 class="display-3 mx-auto font-weight-black logo">
                 CHAIN REACTION
               </h1>
@@ -53,9 +53,9 @@
               <div class="mx-auto">
                 <br />
                 <div class="db mediumScalar">Current players:</div>
-                <b class="db mediumScalar">{{
-                  JSON.parse(game.players).join(", ")
-                }}</b>
+                <b class="db mediumScalar">
+                  {{ JSON.parse(game.players).join(", ") }}
+                </b>
               </div>
             </v-row>
             <v-row>
@@ -89,10 +89,10 @@
       </div>
     </div>
     <div v-else-if="JSON.parse(game.state) == `ADD_WORDS`">
-      <div class="aligner-2" v-if="wordsAdded<wordsMax"> 
+      <div class="aligner-2" v-if="wordsAdded < wordsMax">
         <v-col>
           <v-row>
-            <div class="wrapper logo  mx-auto">
+            <div class="wrapper logo mx-auto">
               <h1 class="display-3 mx-auto font-weight-black logo">
                 Enter a word.
               </h1>
@@ -123,25 +123,91 @@
           </v-row>
         </v-col>
       </div>
-      <div class="aligner-2" v-else> 
+      <div class="aligner-2" v-else>
         <v-col>
           <v-row>
-            <div class="wrapper logo  mx-auto">
+            <div class="wrapper logo mx-auto">
               <h1 class="display-4 mx-auto font-weight-black logo">
                 Waiting for other players...
               </h1>
             </div>
           </v-row>
           <v-row>
-            <v-btn
-              x-large
-              depressed
-              @click="toGuessing()"
-              class="mx-auto enter"
+            <v-btn x-large depressed @click="toGuessing()" class="mx-auto enter"
               >Everybody Ready</v-btn
             >
           </v-row>
         </v-col>
+      </div>
+    </div>
+    <div
+      v-else-if="
+        JSON.parse(game.state) == `TEAM2_GUESS` ||
+          JSON.parse(game.state) == `TEAM1_GUESS`
+      "
+    >
+      <div v-if="inActiveTeam">
+        <!-- Show the members of your team, and your place in the speaking order. If you're the guesser, don't show the word, otherwise, do.-->
+        <div v-if="String(getActiveGuesser()) == String(myName)">
+          <v-col>
+            <v-row>
+              <div class="wrapper logo mx-auto">
+                <h1 class="display-4 mx-auto font-weight-black logo">
+                  You are the active guesser. Good Luck.
+                </h1>
+                <h3 class="display-1 mx-auto logo">🍀</h3>
+              </div>
+            </v-row>
+          </v-col>
+        </div>
+        <div v-else>
+          <v-col>
+            <v-row>
+              <div class="wrapper logo mx-auto">
+                <h3
+                  class="db mx-auto font-weight-black display-2"
+                  v-for="member in membersInActiveTeam
+                    .slice(0, membersInActiveTeam.indexOf(getActiveGuesser()))
+                    .concat(
+                      membersInActiveTeam.slice(
+                        1 + membersInActiveTeam.indexOf(getActiveGuesser())
+                      )
+                    )"
+                  :key="member"
+                >
+                  {{ member }},
+                </h3>
+              </div>
+            </v-row>
+            <v-row class="mx=auto">
+              <v-row>
+                <v-btn x-large depressed @click="skip()" class="mx-auto bb"
+                  >Skip!</v-btn
+                >
+              </v-row>
+              <v-row>
+                <v-btn x-large depressed @click="next()" class="mx-auto bb"
+                  >Correct!</v-btn
+                >
+              </v-row>
+              <v-row>
+                <v-btn x-large depressed @click="wrong()" class="mx-auto bb"
+                  >Incorrect!</v-btn
+                >
+              </v-row>
+            </v-row>
+          </v-col>
+          <v-row>
+            <div class="wrapper logo mx-auto">
+              <h3 class="db mx-auto font-weight-black display-4">
+                Word:{{ game.currentwords }}
+              </h3>
+            </div>
+          </v-row>
+        </div>
+      </div>
+      <div v-else>
+        <!-- Show the other team's active players + guesser -->
       </div>
     </div>
   </div>
@@ -162,7 +228,7 @@ export default {
       words: [],
       currentWordAdd: "",
       wordsAdded: 0,
-      wordsMax: 7,
+      wordsMax: 1,
       id: -1,
       game: null
     };
@@ -188,7 +254,9 @@ export default {
           console.log("Server online.");
           break;
         case "updateState":
-          this.game = data.data;
+          if (this.myName != "") {
+            this.game = data.data;
+          }
           break;
         default:
           console.log(event.state);
@@ -197,6 +265,32 @@ export default {
     };
   },
   methods: {
+    skip() {
+       this.socket.send(
+        JSON.stringify({
+          type: "skipWord",
+          id: this.id,
+        })
+      );
+    },
+    next() {
+      this.socket.send(
+        JSON.stringify({
+          type: "wordCorrect",
+          id: this.id,
+        })
+      );
+    },
+    wrong() {},
+    toGuessing() {
+      this.socket.send(
+        JSON.stringify({
+          type: "ready",
+          id: this.id,
+          words: JSON.stringify(this.words)
+        })
+      );
+    },
     pushNextWord() {
       this.words.push(this.currentWordAdd);
       this.currentWordAdd = "";
@@ -210,6 +304,38 @@ export default {
           })
         );
       }
+    },
+    getActiveGuesser() {
+      this.game.team2 = JSON.stringify(
+        JSON.parse(this.game.team2)
+          .join("^^^")
+          .split("^^^")
+      );
+      this.game.team1 = JSON.stringify(
+        JSON.parse(this.game.team1)
+          .join("^^^")
+          .split("^^^")
+      );
+
+      if (JSON.parse(this.game.state) == "TEAM2_GUESS") {
+        console.log(
+          JSON.parse(this.game.team2)[
+            this.game.team2.length % Number(this.game.guesser.split("-")[1])
+          ]
+        );
+        this.firstRun = JSON.parse(this.game.team2)[
+          this.game.team2.length % Number(this.game.guesser.split("-")[1])
+        ];
+        return JSON.parse(this.game.team2)[
+          this.game.team2.length % Number(this.game.guesser.split("-")[1])
+        ];
+      }
+      this.firstRun = JSON.parse(this.game.team1)[
+        this.game.team1.length % Number(this.game.guesser.split("-")[0])
+      ];
+      return JSON.parse(this.game.team1)[
+        this.game.team1.length % Number(this.game.guesser.split("-")[0])
+      ];
     },
     goAdd() {
       this.socket.send(JSON.stringify({ type: "goAdd", id: this.id }));
@@ -231,6 +357,26 @@ export default {
         }, 200);
       }
     }
+  },
+  computed: {
+    inActiveTeam() {
+      if (JSON.parse(this.game.state) == `TEAM2_GUESS`) {
+        if (JSON.parse(this.game.team2).includes(this.myName)) {
+          return true;
+        }
+        return false;
+      }
+      if (JSON.parse(this.game.team1).includes(this.myName)) {
+        return true;
+      }
+      return false;
+    },
+    membersInActiveTeam() {
+      if (JSON.parse(this.game.state) == `TEAM2_GUESS`) {
+        return JSON.parse(this.game.team2);
+      }
+      return JSON.parse(this.game.team1);
+    }
   }
 };
 </script>
@@ -238,7 +384,9 @@ export default {
 .db {
   display: inline-block;
 }
-
+.bb {
+  width: 80%;
+}
 .logo {
   margin-bottom: 3%;
   display: inline-block;
