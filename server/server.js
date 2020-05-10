@@ -32,12 +32,21 @@ wss.on('connection', ws => {
             console.log("JOINED: " + message.name)
             db.join(message.name,message.id);
             break;
-        case "addWord":
-          console.log("WORD ADDED: " + message.word);
-          db.addWord(message.word,message.id)
+        case "addWords":
+          console.log("WORDS ADDED: " + message.words);
+          db.addWords(message.id,message.words)
           break;
         case "nextWord":
             db.nextWord(message.id,sendWord);
+            break;
+        case "goAdd":
+            function precallback() {
+                function recall(message2) {
+                    wss.broadcast(JSON.stringify({type:"updateState",data:message2}));
+                } 
+                db.getMyServer(message.id,recall);
+            }
+            db.goAdd(message.id,precallback);
             break;
         case "wordCorrect":
             db.wordCorrect(message.id,sendWord);
@@ -73,8 +82,8 @@ wss.on('connection', ws => {
             break;
         case "switchTeams":
             function precallback() {
-                function recall(message) {
-                    wss.broadcast(JSON.stringify({type:"updateState",data:message}));
+                function recall(message2) {
+                    wss.broadcast(JSON.stringify({type:"updateState",data:message2}));
                 } 
                 db.getMyServer(message.id,recall);
             }

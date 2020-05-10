@@ -75,12 +75,14 @@ class ServerRepository {
     leave(playerID, serverID) {
 
     }
-    addWord(word, serverID) {
+    addWords(serverID,newWords) {
         this.dao.get(
             `SELECT words FROM servers WHERE id = ?`,
             [serverID]).then(data => {
             let words = JSON.parse(data.words);
-            words.push(word);
+            for (let newword of JSON.parse(newWords)) {
+                words.push(newword);
+            }
             this.dao.run(`UPDATE servers SET words = ? WHERE id = ?`,
                 [JSON.stringify(words), serverID]
             ).then(data => {
@@ -242,6 +244,12 @@ class ServerRepository {
                 });
             }
         })
+    }
+    goAdd(id,precallback) {
+        this.dao.run(`UPDATE servers SET state = ? WHERE id = ?`,
+        [JSON.stringify("ADD_WORDS"), id]
+        ).then(data => {
+            precallback(data)});
     }
     getAll() {
         return this.dao.run(
