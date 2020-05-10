@@ -260,7 +260,6 @@ class ServerRepository {
                 first=first.filter(function(e){return e}); 
                 let second = players.slice(Math.floor(players.length / 2));
                 second=second.filter(function(e){return e}); 
-                console.log(first);
                 this.dao.run(`UPDATE servers SET team1 = ?, team2 = ? WHERE id = ?`,
                     [JSON.stringify(first), JSON.stringify(second), serverID]
                 ).then(data => {

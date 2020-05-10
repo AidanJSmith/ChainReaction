@@ -1,13 +1,22 @@
 // server.js
  
-const WebSocket = require('ws')
+const { Server } = require('ws');
 const Promise = require('bluebird')
 const AppDAO = require('./dao')
 const ServerRepository = require('./server_repository')
+var express = require('express');
+const PORT = process.env.PORT || 3000;
+const INDEX = '/index.html';
 
-const wss = new WebSocket.Server({ port: 8081 })
+const server = express()
+  .use((req, res) => res.sendFile(INDEX, { root: __dirname }))
+  .listen(PORT, () => console.log(`Listening on ${PORT}`));
+
+const wss = new Server({ server });
 const dao = new AppDAO('./database.sqlite3')
 const db = new ServerRepository(dao)
+
+
 db.createTable();
 wss.broadcast = function broadcast(msg) {
     wss.clients.forEach(function each(client) {
@@ -25,7 +34,6 @@ function sendWord(word,id,currentTeam) {
 wss.on('connection', ws => {
   ws.on('message', message => {
     message=JSON.parse(message);
-    console.log(message);
     switch(message.type) {
         case "signup":
             console.log("JOINED: " + message.name)
@@ -40,10 +48,11 @@ wss.on('connection', ws => {
                     function finalCallBack(message2) {
                          wss.broadcast(JSON.stringify({type:"updateState",data:message2}));
                     }
-                    console.log("FINAL")
                     db.getMyServer(message.id,finalCallBack);
             }
             db.nextWord(message.id,calloncemore);
+            break;
+        case "heartbeat":
             break;
         case "goAdd":
             function precallbackee() {
@@ -51,9 +60,7 @@ wss.on('connection', ws => {
                     wss.broadcast(JSON.stringify({type:"updateState",data:message2}));
                 } 
                 db.getMyServer(message.id,recall);
-                console.log("ADDING");
             }
-            console.log("ADDING");
             db.goAdd(message.id,precallbackee);
             break;
         case "wordIncorrect":
@@ -61,7 +68,6 @@ wss.on('connection', ws => {
                 function finalCallBack(message2) {
                         wss.broadcast(JSON.stringify({type:"updateState",data:message2}));
                 }
-                console.log("FINAL")
                 db.getMyServer(message.id,finalCallBack);
             } 
 
@@ -80,7 +86,6 @@ wss.on('connection', ws => {
                 console.log("Next word")
                 db.wordCorrect(message.id,recall);
             }
-            console.log("Working")
             db.nextWord(message.id,keepcall);
             break;
         case "skipWord":
@@ -150,20 +155,16 @@ wss.on('connection', ws => {
                     function finalCallBack(message2) {
                          wss.broadcast(JSON.stringify({type:"updateState",data:message2}));
                     }
-                    console.log("FINAL")
                     db.getMyServer(message.id,finalCallBack);
                 } 
-                console.log("Next word")
                 db.ready(message.id,recall);
             }
             function goPause(state, score) {
                 function lastCallb(message2) {
                         wss.broadcast(JSON.stringify({type:"updateState",data:message2}));
                 }
-                console.log("Going To Pause")
                 db.getMyServer(message.id,lastCallb);
             } 
-            console.log("Working")
             calloncemore();
             setTimeout(() => {db.pause(message.id,goPause)},45000);
             break;

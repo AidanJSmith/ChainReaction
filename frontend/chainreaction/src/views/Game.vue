@@ -140,7 +140,12 @@
         </v-col>
       </div>
     </div>
-    <div v-else-if="JSON.parse(game.state) == `PAUSE`&&!(JSON.parse(game.words).length==0)">
+    <div
+      v-else-if="
+        JSON.parse(game.state) == `PAUSE` &&
+          !(JSON.parse(game.words).length == 0)
+      "
+    >
       <div class="aligner-2">
         <v-col>
           <div class="aligner-1">
@@ -148,25 +153,31 @@
               <v-row>
                 <div class="wrapper logo mx-auto">
                   <h1 class="display-4 mx-auto font-weight-black logo">
-                     Is everyone ready for the next round? Words left: {{JSON.parse((game.words)).length}}
+                    Is everyone ready for the next round? Words left:
+                    {{ JSON.parse(game.words).length }}
                   </h1>
                   <h1 class="display-2 mx-auto font-weight-black logo">
-                     (The skipped words will be shuffled in at the end. Skipped: {{JSON.parse(game.skippedwords).length}})
+                    (The skipped words will be shuffled in at the end. Skipped:
+                    {{ JSON.parse(game.skippedwords).length }})
                   </h1>
                 </div>
               </v-row>
               <v-row>
-                 <v-btn x-large depressed @click="next()" class="mx-auto enter"
+                <v-btn x-large depressed @click="next()" class="mx-auto enter"
                   >Did they get the last word?</v-btn
                 >
-                <v-btn x-large depressed @click="guessPause()" class="mx-auto enter"
+                <v-btn
+                  x-large
+                  depressed
+                  @click="guessPause()"
+                  class="mx-auto enter"
                   >Everybody Ready</v-btn
                 >
               </v-row>
             </v-col>
           </div>
         </v-col>
-        </div>
+      </div>
     </div>
     <div
       v-else-if="
@@ -192,12 +203,20 @@
           <v-col>
             <v-row>
               <div class="wrapper logo mx-auto">
-                <h3
-                  class="db mx-auto font-weight-black display-3"
-                  v-for="member in (membersInActiveTeam).slice(1+membersInActiveTeam.indexOf(getActiveGuesser)).concat((membersInActiveTeam).slice(0,membersInActiveTeam.indexOf(getActiveGuesser)))"
-                  :key="member"
-                >
-                  {{ member }},
+                <h3 class="db mx-auto font-weight-black display-3">
+                  {{
+                    membersInActiveTeam
+                      .slice(
+                        1 + membersInActiveTeam.indexOf(getActiveGuesser())
+                      )
+                      .concat(
+                        membersInActiveTeam.slice(
+                          0,
+                          membersInActiveTeam.indexOf(getActiveGuesser())
+                        )
+                      )
+                      .join(", ")
+                  }}
                 </h3>
               </div>
             </v-row>
@@ -230,24 +249,56 @@
       </div>
       <div v-else>
         <!-- Show the other team's active players + guesser -->
-         <div class="aligner" v-if="game == null">
-            <v-col>
-              <v-row>
-                <div class="wrapper logo mx-auto">
-                  <h1 class="display-4 mx-auto font-weight-black">
-                    You are on the other team. Please be patient!
-                  </h1>
-                  <h3 class="display-1 mx-auto logo">🕰️</h3>
-                </div>
-              </v-row>
-            </v-col>
-          </div>
+        <div class="aligner">
+          <v-col>
+            <v-row>
+              <div class="wrapper logo mx-auto">
+                <h1 class="display-4 mx-auto font-weight-black">
+                  You are on the other team. Please be patient!
+                </h1>
+              </div>
+            </v-row>
+          </v-col>
+        </div>
       </div>
     </div>
     <div
-      v-else-if="JSON.parse(game.state) == `GAME_OVER`||JSON.parse(game.words).length==0">
-      Good game. {{game.score}}I need more styles here... {{game.team1}}||{{game.team2}}
-
+      v-else-if="
+        JSON.parse(game.state) == `GAME_OVER` ||
+          JSON.parse(game.words).length == 0
+      "
+    >
+      <div class="aligner" v-if="game == null">
+        <v-col>
+          <v-row>
+            <div class="wrapper logo mx-auto">
+              <h1 class="display-3 mx-auto font-weight-black">
+                Good Game!
+              </h1>
+            </div>
+          </v-row>
+          <v-row class="wrapper mx-auto">
+            <h2 class="display-2">Final Score: {{ game.score }}</h2>
+          </v-row>
+          <v-row class="wrapper mx-auto">
+            <div v-if="winner == 1">
+              <h1 class="display-3 mx-auto font-weight-black">
+                Congrats: {{ JSON.parse(game.team1).join(",") }}
+              </h1>
+            </div>
+            <div v-if="winner == 2">
+              <h1 class="display-3 mx-auto font-weight-black">
+                Congrats: {{ JSON.parse(game.team2).join(",") }}
+              </h1>
+            </div>
+            <div v-if="winner == 'tie'">
+              <h1 class="display-3 mx-auto font-weight-black">
+                It was a tie! Everyone is a winner.
+              </h1>
+            </div>
+          </v-row>
+        </v-col>
+      </div>
     </div>
   </div>
 </template>
@@ -274,7 +325,7 @@ export default {
   },
   mounted() {
     //Setup Websockets
-    this.socket = new WebSocket(`ws://localhost:8081`);
+    this.socket = new WebSocket(`wss://chainreactionserver.herokuapp.com`);
     this.socket.onopen = async () => {
       console.log("SENDING ");
       let id = this.$route.params.id;
@@ -282,6 +333,9 @@ export default {
       //Get game ID
       this.socket.send(JSON.stringify({ type: "getIDbyName", name: id }));
       this.firstRun = false;
+      setInterval(() => {
+        this.socket.send(JSON.stringify({ type: "heartbeat", name: id }));
+      }, 2000);
     };
     this.socket.onmessage = event => {
       let data = JSON.parse(event.data);
@@ -329,7 +383,7 @@ export default {
         })
       );
     },
-     guessPause() {
+    guessPause() {
       this.socket.send(
         JSON.stringify({
           type: "readyPause",
@@ -427,6 +481,16 @@ export default {
         return true;
       }
       return false;
+    },
+    winner() {
+      let score = this.game.score;
+      if (Number(score.split("-")[0]) > Number(score.split("-")[1])) {
+        return 1;
+      } else if (Number(score.split("-")[1]) > Number(score.split("-")[2])) {
+        return 2;
+      } else {
+        return "tie";
+      }
     },
     membersInActiveTeam() {
       if (JSON.parse(this.game.state) == `TEAM2_GUESS`) {

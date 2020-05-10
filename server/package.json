@@ -4,7 +4,7 @@
   "description": "The websocket server which efficently serves content to the end user of the chainreaction game.",
   "main": "index.js",
   "scripts": {
-    "test": "test"
+    "start": "node server.js"
   },
   "repository": {
     "type": "git",
@@ -23,7 +23,10 @@
   "homepage": "https://github.com/n/a#readme",
   "dependencies": {
     "bluebird": "^3.7.2",
+    "bufferutil": "^4.0.1",
+    "express": "^4.17.1",
     "sqlite3": "^4.2.0",
-    "ws": "^7.2.5"
+    "utf-8-validate": "^5.0.2",
+    "ws": "^7.3.0"
   }
 }
