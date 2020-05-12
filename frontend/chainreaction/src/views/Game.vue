@@ -7,7 +7,7 @@
             <h1 class="display-3 mx-auto font-weight-black logo">
               CHAIN REACTION
             </h1>
-            <h3 class="display-1 mx-auto logo">v1.04</h3>
+            <h3 class="display-1 mx-auto logo">v1.05</h3>
           </div>
         </v-row>
         <v-col cols="12" sm="6" md="3" class="mx-auto enter">
@@ -37,7 +37,7 @@
               <h1 class="display-3 mx-auto font-weight-black logo">
                 CHAIN REACTION
               </h1>
-              <h3 class="display-1 mx-auto logo">v1.04</h3>
+              <h3 class="display-1 mx-auto logo">v1.05</h3>
             </div>
           </v-row>
           <v-col cols="12" sm="6" md="3" class="mx-auto enter">
@@ -128,7 +128,7 @@
           <v-row>
             <div class="wrapper logo mx-auto">
               <h1 class="display-4 mx-auto font-weight-black logo">
-                Waiting for other players...
+                Waiting for other players... 
               </h1>
             </div>
           </v-row>
@@ -156,10 +156,12 @@
                     Is everyone ready for the next round? Words left:
                     {{ JSON.parse(game.words).length }}
                   </h1>
+                  <!--
                   <h1 class="display-2 mx-auto font-weight-black logo">
                     (The skipped words will be shuffled in at the end. Skipped:
                     {{ JSON.parse(game.skippedwords).length }})
                   </h1>
+                  -->
                 </div>
               </v-row>
               <v-row>
@@ -204,7 +206,7 @@
             <v-row>
               <div class="wrapper logo mx-auto">
                 <h3 class="db mx-auto font-weight-black display-3">
-                  {{
+                  Player Order: {{
                     membersInActiveTeam
                       .slice(
                         1 + membersInActiveTeam.indexOf(getActiveGuesser())
@@ -222,7 +224,7 @@
             </v-row>
             <v-row class="mx=auto">
               <v-row>
-                <v-btn x-large depressed @click="skip()" class="mx-auto bb"
+                <v-btn x-large depressed @click="wrong()" class="mx-auto bb"
                   >Skip!</v-btn
                 >
               </v-row>
@@ -255,6 +257,8 @@
               <div class="wrapper logo mx-auto">
                 <h1 class="display-4 mx-auto font-weight-black">
                   You are on the other team. Please be patient!
+                  Team1: {{game.team1}}
+                  Team2: {{game.team2}}
                 </h1>
               </div>
             </v-row>
@@ -278,20 +282,20 @@
             </div>
           </v-row>
           <v-row class="wrapper mx-auto">
-            <h2 class="display-2">Final Score: {{ game.score }}</h2>
+            <h2 class="display-4 mx-auto">Final Score: {{ game.score }}</h2>
           </v-row>
           <v-row class="wrapper mx-auto">
-            <div v-if="winner == 1">
+            <div class="mx-auto" v-if="winner == 1">
               <h1 class="display-3 mx-auto font-weight-black">
                 Congrats: {{ JSON.parse(game.team1).join(",") }}
               </h1>
             </div>
-            <div v-if="winner == 2">
+            <div class="mx-auto" v-if="winner == 2">
               <h1 class="display-3 mx-auto font-weight-black">
                 Congrats: {{ JSON.parse(game.team2).join(",") }}
               </h1>
             </div>
-            <div v-if="winner == 'tie'">
+            <div class="mx-auto" v-if="winner == 'tie'">
               <h1 class="display-3 mx-auto font-weight-black">
                 It was a tie! Everyone is a winner.
               </h1>
@@ -318,7 +322,7 @@ export default {
       words: [],
       currentWordAdd: "",
       wordsAdded: 0,
-      wordsMax: 1,
+      wordsMax: 7,
       id: -1,
       game: null
     };
@@ -339,7 +343,6 @@ export default {
     };
     this.socket.onmessage = event => {
       let data = JSON.parse(event.data);
-      console.log(data);
       switch (data.type) {
         case "updateID":
           this.id = data.id;
@@ -348,7 +351,7 @@ export default {
           console.log("Server online.");
           break;
         case "updateState":
-          if (this.myName != "") {
+          if (this.myName != ""&&data.data.id==this.id) {
             this.game = data.data;
           }
           break;

@@ -1,6 +1,7 @@
 // server.js
  
 const { Server } = require('ws');
+var clients={};
 const Promise = require('bluebird')
 const AppDAO = require('./dao')
 const ServerRepository = require('./server_repository')
@@ -31,13 +32,15 @@ function sendWord(word,id,currentTeam) {
     // console.log(wss.clients);
 }
 
-wss.on('connection', ws => {
+wss.on('connection', (ws,req) => {
   ws.on('message', message => {
     message=JSON.parse(message);
     switch(message.type) {
         case "signup":
+            console.log(ws);
             console.log("JOINED: " + message.name)
             db.join(message.name,message.id);
+
             break;
         case "addWords":
           console.log("WORDS ADDED: " + message.words);
@@ -145,7 +148,7 @@ wss.on('connection', ws => {
             } 
             console.log("Working")
             db.nextWord(message.id,calloncemore);
-            setTimeout(() => {db.pause(message.id,goPause)},10000);
+            setTimeout(() => {db.pause(message.id,goPause)},45000);
             break;
         case "readyPause":
             console.log("ReadyPause Recieved")
@@ -166,7 +169,7 @@ wss.on('connection', ws => {
                 db.getMyServer(message.id,lastCallb);
             } 
             calloncemore();
-            setTimeout(() => {db.pause(message.id,goPause)},45000);
+            setTimeout(() => {db.pause(message.id,goPause)},90000);
             break;
         case "unready":
             db.unready(message.id);

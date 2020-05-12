@@ -7,13 +7,13 @@
             <h1 class="display-3 mx-auto font-weight-black logo">
               CHAIN REACTION
             </h1>
-            <h3 class="display-1 mx-auto logo">v1.03</h3>
+            <h3 class="display-1 mx-auto logo">v1.05</h3>
           </div>
         </v-row>
         <v-col cols="12" sm="6" md="3" class="mx-auto enter">
           <v-text-field
             class="enter"
-            label="Enter A Name"
+            label="Game Name"
             outlined
             v-model="serverName"
             :rules="[nameValidator]"

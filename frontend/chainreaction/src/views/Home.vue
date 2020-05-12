@@ -7,11 +7,13 @@
             <h1 class="display-3 mx-auto font-weight-black logo">
               CHAIN REACTION
             </h1>
-            <h3 class="display-1 mx-auto logo">v1.04</h3>
+            <h3 class="display-1 mx-auto logo">v1.05</h3>
           </div>
         </v-row>
         <v-row>
-          <v-btn x-large depressed class="mx-auto">Join a game</v-btn>
+          <router-link class="mx-auto" :to="{ name: 'host' }">
+            <v-btn x-large depressed class="mx-auto">Join a game</v-btn>
+          </router-link>
         </v-row>
         <v-row style="transform:translateY(10%)">
           <router-link class="mx-auto" :to="{ name: 'host' }">

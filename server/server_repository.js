@@ -101,10 +101,8 @@ class ServerRepository {
 
             data.skippedwords = JSON.parse(data.skippedwords);
             data.currentwords = JSON.parse(data.currentwords);
-            console.log("The current word is (time 1) " + data.words);
             let wordCorrect=[]
             if (data.currentwords != undefined && data.currentwords !=null) {
-                console.log("removing the current word from the main array");
                 if (add==true) {
                     data.usedwords.push(data.currentwords);
                 }
@@ -117,8 +115,6 @@ class ServerRepository {
                     }
                 }
                 data.words=wordCorrect;
-                console.log("The current word is (time 2) " + wordCorrect);
-
             }
             if (data.words.length == 0) {
                 if (data.skippedwords.length == 0) {
