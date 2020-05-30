@@ -174,10 +174,10 @@
                 </div>
               </v-row>
               <v-row>
-                <v-btn x-large depressed @click="next()" class="mx-auto enter mtop"
+                <v-btn x-large depressed @click="corrnext()" class="mx-auto enter mtop"
                   >Last word correct?</v-btn
                 >
-                <v-btn x-large depressed @click="wrong()" class="mx-auto enter mtop"
+                <v-btn x-large depressed @click="wrongnext()" class="mx-auto enter mtop"
                   >Last word incorrect?</v-btn
                 >
                 <v-btn
@@ -400,6 +400,14 @@ export default {
         })
       );
     },
+    wrongnext(){
+      this.wrong();
+      setTimeout( () => {this.toGuessing()},20);
+    },
+    corrnext(){
+      this.next();
+      setTimeout( () => {this.toGuessing()},20);
+    },
     next() {
       this.socket.send(
         JSON.stringify({
@@ -452,9 +460,6 @@ export default {
     getActiveGuesser() {
       let team1=eval(this.game.team1);
       let team2=eval(this.game.team2);
-      
-      console.log(Number(this.game.guesser.split("-")[1]) % this.game.team2.length)
-
       if (JSON.parse(this.game.state) == "TEAM2_GUESS") {
 
         this.firstRun = team2[
