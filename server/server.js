@@ -37,7 +37,6 @@ wss.on('connection', (ws,req) => {
     message=JSON.parse(message);
     switch(message.type) {
         case "signup":
-            console.log(ws);
             console.log("JOINED: " + message.name)
             db.join(message.name,message.id);
 
@@ -47,13 +46,13 @@ wss.on('connection', (ws,req) => {
           db.addWords(message.id,message.words)
           break;
         case "nextWord":
-            function calloncemore(state, score) {
+            function replacethisinrewrite1(state, score) {
                     function finalCallBack(message2) {
                          wss.broadcast(JSON.stringify({type:"updateState",data:message2}));
                     }
                     db.getMyServer(message.id,finalCallBack);
             }
-            db.nextWord(message.id,calloncemore);
+            db.nextWord(message.id,replacethisinrewrite1);
             break;
         case "heartbeat":
             break;
@@ -176,13 +175,13 @@ wss.on('connection', (ws,req) => {
             wss.broadcast(JSON.stringify({"type":"stateUpdate","state" : "WAITING_FOR_PLAYERS"}));
             break;
         case "switchTeams":
-            function precallback() {
+            function precallback2() {
                 function recall(message2) {
                     wss.broadcast(JSON.stringify({type:"updateState",data:message2}));
                 } 
                 db.getMyServer(message.id,recall);
             }
-            db.makeTeams(message.id,precallback);
+            db.makeTeams(message.id,precallback2);
             break;
         case "getData":
             function recall(message) {

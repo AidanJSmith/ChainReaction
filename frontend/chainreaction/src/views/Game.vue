@@ -20,6 +20,7 @@
                 outlined
                 v-model="myName"
                 maxlength="20"
+                v-on:keyup.13="join()"
               ></v-text-field>
             </v-col>
             <v-btn x-large depressed @click="join()" class="mx-auto"
@@ -109,6 +110,7 @@
                 outlined
                 v-model="currentWordAdd"
                 maxlength="50"
+                v-on:keyup.13="pushNextWord()"
               ></v-text-field>
             </v-col>
           </v-row>
@@ -134,7 +136,7 @@
           </v-row>
           <v-row>
             <v-btn x-large depressed @click="toGuessing()" class="mx-auto enter"
-              >Everybody Ready</v-btn
+              >Designated Gamemaster: Everyone is Ready</v-btn
             >
           </v-row>
         </v-col>
@@ -152,9 +154,9 @@
             <v-col>
               <v-row>
                 <div class="wrapper logo mx-auto">
-                  <h1 class="display-4 mx-auto font-weight-black logo">
+                  <h1 class="display-4 mx-auto logo">
                     Is everyone ready for the next round? Words left:
-                    {{ JSON.parse(game.words).length }}
+                    <b>{{ JSON.parse(game.words).length }} </b>
                   </h1>
                   <!--
                   <h1 class="display-2 mx-auto font-weight-black logo">
@@ -173,7 +175,7 @@
                   depressed
                   @click="guessPause()"
                   class="mx-auto enter"
-                  >Everybody Ready</v-btn
+                  >Designated Gamemaster: Everyone is Ready</v-btn
                 >
               </v-row>
             </v-col>
@@ -194,7 +196,7 @@
             <v-row>
               <div class="wrapper logo mx-auto">
                 <h1 class="display-4 mx-auto font-weight-black logo">
-                  You are the active guesser. Good Luck.
+                  Your are the guesser. Your teammates will give you clues.
                 </h1>
                 <h3 class="display-1 mx-auto logo">🍀</h3>
               </div>
@@ -218,7 +220,9 @@
                         )
                       )
                       .join(", ")
-                  }}
+                  }} 
+                  <br/>
+                  <i>Guesser: {{getActiveGuesser()}}</i>
                 </h3>
               </div>
             </v-row>
@@ -256,10 +260,14 @@
             <v-row>
               <div class="wrapper logo mx-auto">
                 <h1 class="display-4 mx-auto font-weight-black">
-                  You are on the other team. Please be patient!
-                  Team1: {{game.team1}}
-                  Team2: {{game.team2}}
+                  You are on the other team. Wait for other guessers.
                 </h1>
+                <br/>
+                <h2 class="display-3 mx-auto font-weight-black">
+                  Team1: {{JSON.parse(game.team1).join(", ")}}
+                  <br/>
+                  Team2: {{JSON.parse(game.team2).join(", ")}}
+                </h2>
               </div>
             </v-row>
           </v-col>
@@ -353,6 +361,7 @@ export default {
         case "updateState":
           if (this.myName != ""&&data.data.id==this.id) {
             this.game = data.data;
+            console.log(data.data);
           }
           break;
         default:
@@ -420,35 +429,26 @@ export default {
       }
     },
     getActiveGuesser() {
-      this.game.team2 = JSON.stringify(
-        JSON.parse(this.game.team2)
-          .join("^^^")
-          .split("^^^")
-      );
-      this.game.team1 = JSON.stringify(
-        JSON.parse(this.game.team1)
-          .join("^^^")
-          .split("^^^")
-      );
+      let team1=eval(this.game.team1);
+      let team2=eval(this.game.team2);
+      
+      console.log(Number(this.game.guesser.split("-")[1]) % this.game.team2.length)
 
       if (JSON.parse(this.game.state) == "TEAM2_GUESS") {
-        console.log(
-          JSON.parse(this.game.team2)[
-            this.game.team2.length % Number(this.game.guesser.split("-")[1])
-          ]
-        );
-        this.firstRun = JSON.parse(this.game.team2)[
-          this.game.team2.length % Number(this.game.guesser.split("-")[1])
+
+        this.firstRun = team2[
+            Number(this.game.guesser.split("-")[1]) % team2.length
         ];
-        return JSON.parse(this.game.team2)[
-          this.game.team2.length % Number(this.game.guesser.split("-")[1])
+        return team2[
+            Number(this.game.guesser.split("-")[1]) % team2.length
         ];
       }
-      this.firstRun = JSON.parse(this.game.team1)[
-        this.game.team1.length % Number(this.game.guesser.split("-")[0])
+
+      this.firstRun = team1[
+        Number(this.game.guesser.split("-")[0]) % team1.length
       ];
-      return JSON.parse(this.game.team1)[
-        this.game.team1.length % Number(this.game.guesser.split("-")[0])
+      return team1[
+        Number(this.game.guesser.split("-")[0]) % team1.length
       ];
     },
     goAdd() {

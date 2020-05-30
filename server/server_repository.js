@@ -204,25 +204,17 @@ class ServerRepository {
         this.dao.get(
             `SELECT state,guesser FROM servers WHERE id = ?`,
             [serverID]).then(data => {
-            let state = JSON.parse(data.state);
-            let score = data.guesser.split("-");
-            console.log(state);
-            if (state == "TEAM1_GUESS") {
-                state = "TEAM2_GUESS";
-                score[1] = Number(score[0]) + 1;
-            } else if (state == "TEAM2_GUESS") {
-                state = "TEAM1_GUESS";
-                score[0] = Number(score[1]) + 1;
-            } else {
-                state = "TEAM1_GUESS";
-                if (Math.random() >= .5) {
-                    state = "TEAM2_GUESS";
-                    score[1] = Number(score[1]) + 1;
+                let state = JSON.parse(data.state);
+                let score = data.guesser.split("-");
+                if (String(score[0])>String(score[1])) {
+                    score[1]=String(Number(score[1])+1);
+                    state="TEAM2_GUESS";
                 } else {
-                    score[0] = Number(score[0]) + 1;
+                    score[0]=String(Number(score[0])+1);
+                    state="TEAM1_GUESS";
                 }
-            }
-            let value = this.dao.run(`UPDATE servers SET state = ?,guesser = ? WHERE id = ?`,
+                console.log(state,score.join("-"));
+            this.dao.run(`UPDATE servers SET state = ?,guesser = ? WHERE id = ?`,
                 [JSON.stringify(state), score.join("-"), serverID]
             ).then(() => {
                 sallback();
