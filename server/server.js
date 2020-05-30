@@ -74,6 +74,7 @@ wss.on('connection', (ws,req) => {
             } 
 
             db.nextWord(message.id,recallx3,false);
+            break;
         case "wordCorrect":
                           //Go to next round. MasterUser On Each Team Has the ability to do this.
             function keepcall(state, score) {
@@ -82,7 +83,7 @@ wss.on('connection', (ws,req) => {
                     function finalCallBack(message2) {
                          wss.broadcast(JSON.stringify({type:"updateState",data:message2}));
                     }
-                    console.log("FINAL")
+                    console.log("Sending Next Word")
                     db.getMyServer(message.id,finalCallBack);
                 } 
                 console.log("Next word")

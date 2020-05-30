@@ -168,14 +168,17 @@
               </v-row>
               <v-row>
                 <v-btn x-large depressed @click="next()" class="mx-auto enter"
-                  >Did they get the last word?</v-btn
+                  >Last word correct?</v-btn
+                >
+                <v-btn x-large depressed @click="wrong()" class="mx-auto enter"
+                  >Last word incorrect?</v-btn
                 >
                 <v-btn
                   x-large
                   depressed
                   @click="guessPause()"
                   class="mx-auto enter"
-                  >Designated Gamemaster: Everyone is Ready</v-btn
+                  >Next Team Gets Last word</v-btn
                 >
               </v-row>
             </v-col>
@@ -205,6 +208,13 @@
         </div>
         <div v-else>
           <v-col>
+             <v-row>
+              <div class="wrapper logo mx-auto">
+                <h3 class="db mx-auto font-weight-black display-3">
+                 Cluegivers, start composing your sentence.
+                </h3>
+              </div>
+            </v-row>
             <v-row>
               <div class="wrapper logo mx-auto">
                 <h3 class="db mx-auto font-weight-black display-3">
@@ -330,14 +340,15 @@ export default {
       words: [],
       currentWordAdd: "",
       wordsAdded: 0,
-      wordsMax: 7,
+      wordsMax: 2,
       id: -1,
       game: null
     };
   },
   mounted() {
     //Setup Websockets
-    this.socket = new WebSocket(`wss://chainreactionserver.herokuapp.com`);
+    //s://chainreactionserver.herokuapp.com
+    this.socket = new WebSocket(`ws://localhost:3000`);
     this.socket.onopen = async () => {
       console.log("SENDING ");
       let id = this.$route.params.id;

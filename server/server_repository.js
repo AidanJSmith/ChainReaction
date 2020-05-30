@@ -76,6 +76,24 @@ class ServerRepository {
 
     }
     addWords(serverID,newWords) {
+        function shuffle(array) {
+            var currentIndex = array.length, temporaryValue, randomIndex;
+          
+            // While there remain elements to shuffle...
+            while (0 !== currentIndex) {
+          
+              // Pick a remaining element...
+              randomIndex = Math.floor(Math.random() * currentIndex);
+              currentIndex -= 1;
+          
+              // And swap it with the current element.
+              temporaryValue = array[currentIndex];
+              array[currentIndex] = array[randomIndex];
+              array[randomIndex] = temporaryValue;
+            }
+          
+            return array;
+          }
         this.dao.get(
             `SELECT words FROM servers WHERE id = ?`,
             [serverID]).then(data => {
@@ -83,6 +101,7 @@ class ServerRepository {
             for (let newword of JSON.parse(newWords)) {
                 words.push(newword);
             }
+            words=shuffle(words)
             this.dao.run(`UPDATE servers SET words = ? WHERE id = ?`,
                 [JSON.stringify(words), serverID]
             ).then(data => {
@@ -118,7 +137,6 @@ class ServerRepository {
             }
             if (data.words.length == 0) {
                 if (data.skippedwords.length == 0) {
-                    console.log("WARNING NULL")
                     this.dao.run(`UPDATE servers SET words = ?, usedwords = ?, currentwords = ?, state = ? WHERE id = ?`,
                     [JSON.stringify(data.words), JSON.stringify(data.usedwords), JSON.stringify(data.currentwords), JSON.stringify("GAME_OVER"), id]
                      ).then(data => {
@@ -129,7 +147,6 @@ class ServerRepository {
                     //Set regular words to skipped words, skippedwords to 0, then continue to draw a random word from the words category. 
                     data.currentwords = data.skippedwords[Math.round(data.skippedwords.length * Math.random())];
                     while (data.currentwords==null) {
-                        console.error("wordsettingerr");
                         data.currentwords = data.skippedwords[Math.round(data.skippedwords.length * Math.random())];
                     }
                     this.dao.run(`UPDATE servers SET words = ?, skippedwords = ?,usedwords = ?, currentwords = ? WHERE id = ?`,
@@ -193,6 +210,7 @@ class ServerRepository {
             } else {
                 score[1] = Number(score[1]) + 1;
             }
+            console.log("The current score is:" + score.join("-"));
             let value = this.dao.run(`UPDATE servers SET score = ? WHERE id = ?`,
                 [score.join("-"), id]
             ).then(() => {
