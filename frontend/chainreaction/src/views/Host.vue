@@ -7,10 +7,10 @@
             <h1 class="display-3 mx-auto font-weight-black logo">
               CHAIN REACTION
             </h1>
-            <h3 class="display-1 mx-auto logo">v1.05</h3>
+            <h3 class="display-1 mx-auto logo">v1.2</h3>
           </div>
         </v-row>
-        <v-col cols="12" sm="6" md="3" class="mx-auto enter">
+        <v-col cols="12" sm="6" md="3" class="mx-auto">
           <v-text-field
             class="enter"
             label="Game Name"
@@ -21,7 +21,7 @@
           ></v-text-field>
           <v-row>
             <v-btn x-large depressed @click="createGame()" class="mx-auto"
-              >Create Game</v-btn
+              >Enter Game</v-btn
             >
           </v-row>
         </v-col>
@@ -58,6 +58,23 @@ export default {
 };
 </script>
 <style lang="scss">
+
+@mixin for-phone-only {
+  @media (max-width: 599px) { @content; }
+}
+@mixin for-tablet-portrait-up {
+  @media (min-width: 600px) { @content; }
+}
+@mixin for-tablet-landscape-up {
+  @media (min-width: 900px) { @content; }
+}
+@mixin for-desktop-up {
+  @media (min-width: 1200px) { @content; }
+}
+@mixin for-big-desktop-up {
+  @media (min-width: 1800px) { @content; }
+}
+
 .logo {
   margin-bottom: 3%;
   display: inline-block;
@@ -71,11 +88,15 @@ export default {
   justify-content: center;
 }
 .enter {
-  transform: scale(1.25);
+  transform: scale(1);
+  @include for-phone-only() {
+      transform: 1;
+  }
 }
 .home {
   width: 100%;
   height: 100%;
   background: rgb(96, 247, 209);
 }
+
 </style>

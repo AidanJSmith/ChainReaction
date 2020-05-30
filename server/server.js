@@ -38,8 +38,10 @@ wss.on('connection', (ws,req) => {
     switch(message.type) {
         case "signup":
             console.log("JOINED: " + message.name)
-            db.join(message.name,message.id);
-
+            function ifFirstSetMaster() {
+                wss.broadcast(JSON.stringify({type:"becomeMaster",data:true}));
+            }
+            db.join(message.name,message.id,ifFirstSetMaster);
             break;
         case "addWords":
           console.log("WORDS ADDED: " + message.words);

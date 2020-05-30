@@ -1,5 +1,8 @@
 <template>
   <div class="home">
+    <div v-if="master">
+      <h3>You are the game master.</h3>
+    </div>
     <div class="aligner" v-if="game == null">
       <v-col>
         <v-row>
@@ -7,12 +10,12 @@
             <h1 class="display-3 mx-auto font-weight-black logo">
               CHAIN REACTION
             </h1>
-            <h3 class="display-1 mx-auto logo">v1.05</h3>
+            <h3 class="display-1 mx-auto logo">v1.2</h3>
           </div>
         </v-row>
-        <v-col cols="12" sm="6" md="3" class="mx-auto enter">
+        <v-col cols="12" sm="6" md="3" class="mx-auto">
           <v-row>
-            <v-col cols="2" sm="3" md="4" class="mx-auto enter">
+            <v-col cols="12" sm="6" md="6" class="mx-auto">
               <v-text-field
                 cl
                 class="enter"
@@ -20,6 +23,7 @@
                 outlined
                 v-model="myName"
                 maxlength="20"
+                :rules="[wordValidator]"
                 v-on:keyup.13="join()"
               ></v-text-field>
             </v-col>
@@ -38,17 +42,18 @@
               <h1 class="display-3 mx-auto font-weight-black logo">
                 CHAIN REACTION
               </h1>
-              <h3 class="display-1 mx-auto logo">v1.05</h3>
+              <h3 class="display-1 mx-auto logo">v1.2</h3>
             </div>
           </v-row>
           <v-col cols="12" sm="6" md="3" class="mx-auto enter">
             <v-row>
-              <v-btn x-large depressed @click="shuffle()" class="mx-auto"
+              <v-btn x-large depressed @click="shuffle()"   class="mtop mx-auto"
                 >Shuffle Teams</v-btn
               >
-              <v-btn x-large depressed @click="goAdd()" class="mx-auto"
-                >START GAME (global)</v-btn
-              >
+              <v-btn x-large v-if="master" depressed @click="goAdd()"  class="mx-auto mtop"
+                >Start Game</v-btn
+              > 
+              <h2 v-else>Wait for the gamemaster to start the game.</h2>
             </v-row>
             <v-row>
               <div class="mx-auto">
@@ -108,8 +113,10 @@
                 cl
                 class="wordBox"
                 outlined
+                label="Enter a Word"
                 v-model="currentWordAdd"
                 maxlength="50"
+                :rules="[wordValidator]"
                 v-on:keyup.13="pushNextWord()"
               ></v-text-field>
             </v-col>
@@ -135,8 +142,8 @@
             </div>
           </v-row>
           <v-row>
-            <v-btn x-large depressed @click="toGuessing()" class="mx-auto enter"
-              >Designated Gamemaster: Everyone is Ready</v-btn
+            <v-btn x-large depressed v-if="master" @click="toGuessing()" class="mx-auto enter"
+              >Everyone is Ready (Ask Verbally Before v2)</v-btn
             >
           </v-row>
         </v-col>
@@ -156,7 +163,7 @@
                 <div class="wrapper logo mx-auto">
                   <h1 class="display-4 mx-auto logo">
                     Is everyone ready for the next round? Words left:
-                    <b>{{ JSON.parse(game.words).length }} </b>
+                    <b class="font-weight-black">{{ JSON.parse(game.words).length }} </b>
                   </h1>
                   <!--
                   <h1 class="display-2 mx-auto font-weight-black logo">
@@ -167,17 +174,17 @@
                 </div>
               </v-row>
               <v-row>
-                <v-btn x-large depressed @click="next()" class="mx-auto enter"
+                <v-btn x-large depressed @click="next()" class="mx-auto enter mtop"
                   >Last word correct?</v-btn
                 >
-                <v-btn x-large depressed @click="wrong()" class="mx-auto enter"
+                <v-btn x-large depressed @click="wrong()" class="mx-auto enter mtop"
                   >Last word incorrect?</v-btn
                 >
                 <v-btn
                   x-large
                   depressed
                   @click="guessPause()"
-                  class="mx-auto enter"
+                  class="mx-auto enter mtop"
                   >Next Team Gets Last word</v-btn
                 >
               </v-row>
@@ -198,10 +205,9 @@
           <v-col>
             <v-row>
               <div class="wrapper logo mx-auto">
-                <h1 class="display-4 mx-auto font-weight-black logo">
-                  Your are the guesser. Your teammates will give you clues.
+                <h1 class="db mx-auto font-weight-black logo">
+                  You are the guesser. Your teammates will give you clues. Please wait...
                 </h1>
-                <h3 class="display-1 mx-auto logo">🍀</h3>
               </div>
             </v-row>
           </v-col>
@@ -210,14 +216,14 @@
           <v-col>
              <v-row>
               <div class="wrapper logo mx-auto">
-                <h3 class="db mx-auto font-weight-black display-3">
-                 Cluegivers, start composing your sentence.
+                <h3 class="db mx-auto">
+                  Cluegivers, start composing your sentence.
                 </h3>
               </div>
             </v-row>
             <v-row>
               <div class="wrapper logo mx-auto">
-                <h3 class="db mx-auto font-weight-black display-3">
+                <h3 class="db-2 mx-auto ">
                   Player Order: {{
                     membersInActiveTeam
                       .slice(
@@ -256,8 +262,8 @@
           </v-col>
           <v-row>
             <div class="wrapper logo mx-auto">
-              <h3 class="db mx-auto font-weight-black display-4">
-                Word:{{ game.currentwords }}
+              <h3 class="db-4 mx-auto font-weight-black" style="margin-top:10%">
+                Word: <div class="highlight">{{ (game.currentwords) }}</div>
               </h3>
             </div>
           </v-row>
@@ -340,7 +346,8 @@ export default {
       words: [],
       currentWordAdd: "",
       wordsAdded: 0,
-      wordsMax: 2,
+      wordsMax: 7,
+      master:false,
       id: -1,
       game: null
     };
@@ -348,7 +355,7 @@ export default {
   mounted() {
     //Setup Websockets
     //s://chainreactionserver.herokuapp.com
-    this.socket = new WebSocket(`ws://localhost:3000`);
+    this.socket = new WebSocket(`wss://chainreactionserver.herokuapp.com`);
     this.socket.onopen = async () => {
       console.log("SENDING ");
       let id = this.$route.params.id;
@@ -365,6 +372,9 @@ export default {
       switch (data.type) {
         case "updateID":
           this.id = data.id;
+          break;
+        case "becomeMaster":
+          this.master=true;
           break;
         case "startup":
           console.log("Server online.");
@@ -481,7 +491,17 @@ export default {
           );
         }, 200);
       }
-    }
+    },
+    wordValidator: value => {
+      let pattern = /[^0-9a-zA-Z\s.]/g;
+      if (value == null) {
+        return "";
+      }
+      if (pattern.test(value) == true) {
+        return "Please remove any special characters.";
+      }
+      return true;
+    },
   },
   computed: {
     inActiveTeam() {
@@ -516,8 +536,46 @@ export default {
 };
 </script>
 <style lang="scss">
+@mixin for-phone-only {
+  @media (max-width: 599px) { @content; }
+}
+@mixin for-tablet-portrait-up {
+  @media (min-width: 600px) { @content; }
+}
+@mixin for-tablet-landscape-up {
+  @media (min-width: 900px) { @content; }
+}
+@mixin for-desktop-up {
+  @media (min-width: 1200px) { @content; }
+}
+@mixin for-big-desktop-up {
+  @media (min-width: 1800px) { @content; }
+}
 .db {
   display: inline-block;
+  font-size: 4vw;
+}
+.db-2 {
+  display: inline-block;
+  font-size: 4.5vw;
+}
+.highlight {
+  color:#f77c60;
+  display: inline-block;
+}
+.db-4 {
+  @include for-phone-only() {
+      font-size: 12vw;
+  }
+  @include for-tablet-portrait-up() {
+      font-size: 10vw;
+  }
+   @include for-tablet-landscape-up() {
+      font-size: 8vw;
+  }
+  @include for-desktop-up () {
+      font-size: 5vw;
+  }
 }
 .bb {
   width: 80%;
@@ -534,7 +592,9 @@ export default {
   transform: translateY(10vw);
   justify-content: center;
 }
-
+.mtop {
+  margin-top:10px;
+}
 .aligner-2 {
   display: flex;
   align-items: center;
@@ -543,13 +603,22 @@ export default {
   justify-content: center;
 }
 .enter {
-  transform: scale(1.25);
+  transform: scale(1.25) translateY(-10px);
+  @include for-phone-only() {
+      transform: scale(1);
+  }
 }
 .smallScalar {
-  font-size: 2vw;
+  font-size: 2.5vw;
+  @include for-phone-only() {
+    font-size: 6vw;
+  }
 }
 .mediumScalar {
   font-size: 1.5vw;
+  @include for-phone-only() {
+    font-size: 8vw;
+  }
 }
 .home {
   width: 100%;

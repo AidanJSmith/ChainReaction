@@ -37,10 +37,14 @@ class ServerRepository {
             VALUES (?, ?, ?, ?, ?, ?, ?,?,?,?,?)`,
             [JSON.stringify([]), JSON.stringify([]), JSON.stringify([]), JSON.stringify(""), JSON.stringify([]), name, "0-0", "1-1", null, null, JSON.stringify("WAIT_FOR_PLAYERS")]);
     }
-    join(playerID, serverID) {
+    join(playerID, serverID,ifFirstSetMaster) {
         let playerList = this.dao.get(
             `SELECT players FROM servers WHERE id = ?`,
             [serverID]).then(data => {
+            if (data.players.length==2) {
+                console.log("Setting Master...")
+                ifFirstSetMaster();
+            }
             // console.log(data, serverID, playerID)
             if (data.players == null) {
                 let newList = [playerID];
@@ -49,11 +53,12 @@ class ServerRepository {
                 this.dao.run(`UPDATE servers SET players = ? WHERE id = ?`,
                     [JSON.stringify(newList), serverID]
                 ).then(data => {
-                    return data
+                    return data;
                 });
             } else {
                 // console.log(data.players + "NEW");
                 let newdata = JSON.parse(data.players);
+                
                 console.log(newdata + "  x" + newdata.length + playerID)
                 if (newdata.includes(playerID)) {
                     // console.log("AGAIN")
