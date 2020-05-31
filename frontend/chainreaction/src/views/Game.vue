@@ -402,11 +402,11 @@ export default {
     },
     wrongnext(){
       this.wrong();
-      setTimeout( () => {this.toGuessing()},2);
+      setTimeout( () => {this.guessPause()},2);
     },
     corrnext(){
       this.next();
-      setTimeout( () => {this.toGuessing()},2);
+      setTimeout( () => {this.guessPause()},2);
     },
     next() {
       this.socket.send(
