@@ -75,7 +75,7 @@ wss.on('connection', (ws,req) => {
                 db.getMyServer(message.id,finalCallBack);
             } 
 
-            db.nextWord(message.id,recallx3,false);
+            db.nextWord(message.id,recallx3);
             break;
         case "wordCorrect":
                           //Go to next round. MasterUser On Each Team Has the ability to do this.
