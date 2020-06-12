@@ -1,4 +1,12 @@
 <template>
+  <!-- 
+    To-Do:
+      Prevent Buttons from being pressed multiple times.
+      New Mode? Text Only?
+      Show other team last word?
+      Word Review At The End of Rounds (Possibly Some Control For that?)
+      Server Garbage Collection (Every day at midnight, just dump database, probably + whenever game ends, reset db)
+    -->
   <div class="home">
     <div v-if="master">
       <h3>You are the game master.</h3>
@@ -165,6 +173,11 @@
                     Is everyone ready for the next round? Words left:
                     <b class="font-weight-black">{{ JSON.parse(game.words).length }} </b>
                   </h1>
+                  <h3 class="display-3 mx-auto logo">
+                    Next Guesser:
+                    <b class="font-weight-black">{{ nextGuesser }} </b>
+                    <br/>
+                  </h3>
                   <!--
                   <h1 class="display-2 mx-auto font-weight-black logo">
                     (The skipped words will be shuffled in at the end. Skipped:
@@ -173,7 +186,7 @@
                   -->
                 </div>
               </v-row>
-              <v-row>
+              <v-row v-if="master">
                 <v-btn x-large depressed @click="corrnext()" class="mx-auto enter mtop"
                   >Last word correct?</v-btn
                 >
@@ -346,7 +359,7 @@ export default {
       words: [],
       currentWordAdd: "",
       wordsAdded: 0,
-      wordsMax: 7,
+      wordsMax: 2,
       master:false,
       id: -1,
       game: null
@@ -536,6 +549,24 @@ export default {
         return JSON.parse(this.game.team2);
       }
       return JSON.parse(this.game.team1);
+    },
+    membersInActiveTeamReverse() {
+      if (JSON.parse(this.game.state) == `TEAM1_GUESS`) {
+        return JSON.parse(this.game.team2);
+      }
+      return JSON.parse(this.game.team1);
+    },
+    nextGuesser() {
+      let team1=eval(this.game.team1);
+      let team2=eval(this.game.team2);
+      if (JSON.parse(this.game.state) == `TEAM1_GUESS`) {
+        return team2[
+            (Number(this.game.guesser.split("-")[1])+1) % team2.length
+        ];
+      }
+      return team1[
+        (Number(this.game.guesser.split("-")[0])+1) % team1.length
+      ];
     }
   }
 };
