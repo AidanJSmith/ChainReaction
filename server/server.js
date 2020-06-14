@@ -2,7 +2,6 @@
  
 const { Server } = require('ws');
 var clients={};
-const Promise = require('bluebird')
 const AppDAO = require('./dao')
 const ServerRepository = require('./server_repository')
 var express = require('express');
@@ -24,14 +23,13 @@ wss.broadcast = function broadcast(msg) {
         client.send(msg);
      });
  };
-function sendWord(word,id,currentTeam) {
-    if (word==null) {
-        //game over things
-    } 
-    wss.broadcast(JSON.stringify({"type":"word","word" : word,"team":currentTeam}));
-    // console.log(wss.clients);
-}
 
+function updateState(message,id=0) {
+    wss.broadcast(JSON.stringify({type:"updateState",data:message}));
+}
+function getServerUpdateState(id) {
+    db.getMyServer(id,updateState);
+}
 wss.on('connection', (ws,req) => {
   ws.on('message', message => {
     message=JSON.parse(message);
@@ -48,69 +46,33 @@ wss.on('connection', (ws,req) => {
           db.addWords(message.id,message.words)
           break;
         case "nextWord":
-            function replacethisinrewrite1(state, score) {
-                    function finalCallBack(message2) {
-                         wss.broadcast(JSON.stringify({type:"updateState",data:message2}));
-                    }
-                    db.getMyServer(message.id,finalCallBack);
-            }
-            db.nextWord(message.id,replacethisinrewrite1);
+            db.nextWord(message.id,getServerUpdateState);
             break;
         case "heartbeat":
             break;
         case "goAdd":
-            function precallbackee() {
-                function recall(message2) {
-                    wss.broadcast(JSON.stringify({type:"updateState",data:message2}));
-                } 
-                db.getMyServer(message.id,recall);
-            }
-            db.goAdd(message.id,precallbackee);
+            db.goAdd(message.id,getServerUpdateState);
             break;
         case "wordIncorrect":
-            function recallx3() {
-                function finalCallBack(message2) {
-                        wss.broadcast(JSON.stringify({type:"updateState",data:message2}));
-                }
-                db.getMyServer(message.id,finalCallBack);
-            } 
-
-            db.nextWord(message.id,recallx3);
+            db.nextWord(message.id,getServerUpdateState);
             break;
         case "wordCorrect":
-                          //Go to next round. MasterUser On Each Team Has the ability to do this.
-            function keepcall(state, score) {
-                console.log();
-                function recall() {
-                    function finalCallBack(message2) {
-                         wss.broadcast(JSON.stringify({type:"updateState",data:message2}));
-                    }
-                    console.log("Sending Next Word")
-                    db.getMyServer(message.id,finalCallBack);
-                } 
+            //Go to next round. MasterUser On Each Team Has the ability to do this.
+            function wordCorrectCallback(state, score) {
                 console.log("Next word")
-                db.wordCorrect(message.id,recall);
+                db.wordCorrect(message.id,getServerUpdateState);
             }
-            db.nextWord(message.id,keepcall);
+            db.nextWord(message.id,wordCorrectCallback);
             break;
         case "skipWord":
-
-            function recallx2() {
-                function finalCallBack(message2) {
-                        wss.broadcast(JSON.stringify({type:"updateState",data:message2}));
-                }
-                console.log("FINAL")
-                db.getMyServer(message.id,finalCallBack);
-            } 
-
-            db.skipWord(message.id,recallx2);
+            db.skipWord(message.id,getServerUpdateState);
             break;
           // code block
         case "getIDbyName":
-            function newFunc(message) {
+            function updateIDCallback(message) {
                 ws.send(JSON.stringify({type:"updateID",id:message}));
             }
-            db.getID(message.name,newFunc);
+            db.getID(message.name,updateIDCallback);
             break;
         case "heartBeat":
             break;
@@ -119,58 +81,33 @@ wss.on('connection', (ws,req) => {
             db.create(message.name);
             break;
         case "pause":
-            function precallback() {
-                function recall(message2) {
-                    wss.broadcast(JSON.stringify({type:"updateState",data:message2}));
-                } 
-                db.getMyServer(message.id,recall);
-            }
-            db.pause(message.id,callback);
+            db.pause(message.id,getServerUpdateState);
             break;
         case "ready":
             //Go to next round. MasterUser On Each Team Has the ability to do this.
-            function calloncemore(state, score) {
-                console.log();
-                function recall() {
-                    function finalCallBack(message2) {
-                         wss.broadcast(JSON.stringify({type:"updateState",data:message2}));
-                    }
-                    console.log("FINAL")
-                    db.getMyServer(message.id,finalCallBack);
-                } 
+            function readyCallback() {
                 console.log("Next word")
-                db.ready(message.id,recall);
+                db.ready(message.id,getServerUpdateState);
             }
-            function goPause(state, score) {
-                function lastCallb(message2) {
-                        wss.broadcast(JSON.stringify({type:"updateState",data:message2}));
-                }
+            function goPause() {
                 console.log("Going To Pause")
-                db.getMyServer(message.id,lastCallb);
+                db.getMyServer(message.id,updateState);
             } 
             console.log("Working")
-            db.nextWord(message.id,calloncemore);
+            db.nextWord(message.id,readyCallback);
             setTimeout(() => {db.pause(message.id,goPause)},45000);
             break;
         case "readyPause":
             console.log("ReadyPause Recieved")
-            function calloncemore(state, score) {
-                console.log();
-                function recall() {
-                    function finalCallBack(message2) {
-                         wss.broadcast(JSON.stringify({type:"updateState",data:message2}));
-                    }
-                    db.getMyServer(message.id,finalCallBack);
-                } 
-                db.ready(message.id,recall);
+            function readyCallback() {
+                console.log("Next word")
+                db.ready(message.id,getServerUpdateState);
             }
-            function goPause(state, score) {
-                function lastCallb(message2) {
-                        wss.broadcast(JSON.stringify({type:"updateState",data:message2}));
-                }
-                db.getMyServer(message.id,lastCallb);
+            function goPause() {
+                console.log("Going To Pause")
+                db.getMyServer(message.id,updateState);
             } 
-            calloncemore();
+            readyCallback();
             setTimeout(() => {db.pause(message.id,goPause)},90000);
             break;
         case "unready":
@@ -178,19 +115,10 @@ wss.on('connection', (ws,req) => {
             wss.broadcast(JSON.stringify({"type":"stateUpdate","state" : "WAITING_FOR_PLAYERS"}));
             break;
         case "switchTeams":
-            function precallback2() {
-                function recall(message2) {
-                    wss.broadcast(JSON.stringify({type:"updateState",data:message2}));
-                } 
-                db.getMyServer(message.id,recall);
-            }
-            db.makeTeams(message.id,precallback2);
+            db.makeTeams(message.id,getServerUpdateState);
             break;
         case "getData":
-            function recall(message) {
-                wss.broadcast(JSON.stringify({type:"updateState",data:message}));
-            } 
-            db.getMyServer(message.id,recall);
+            db.getMyServer(message.id,updateState);
             break;
         default:
             console.error(JSON.stringify({"type":"err"}));

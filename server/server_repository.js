@@ -77,21 +77,13 @@ class ServerRepository {
         });
         return -1;
     };
-    leave(playerID, serverID) {
-
-    }
     addWords(serverID,newWords) {
         function shuffle(array) {
-            var currentIndex = array.length, temporaryValue, randomIndex;
+            let currentIndex = array.length, temporaryValue, randomIndex;
           
-            // While there remain elements to shuffle...
             while (0 !== currentIndex) {
-          
-              // Pick a remaining element...
               randomIndex = Math.floor(Math.random() * currentIndex);
               currentIndex -= 1;
-          
-              // And swap it with the current element.
               temporaryValue = array[currentIndex];
               array[currentIndex] = array[randomIndex];
               array[randomIndex] = temporaryValue;
@@ -114,7 +106,7 @@ class ServerRepository {
             });
         })
     }
-    nextWord(id, sendWord,add=true) {
+    nextWord(id, callback,add=true) {
         let words = (this.dao.get(
             `SELECT words,usedwords,skippedwords,currentwords FROM servers WHERE id = ?`,
             [id])).then(data => {
@@ -158,21 +150,20 @@ class ServerRepository {
                         [JSON.stringify(data.skippedwords), JSON.stringify([]), JSON.stringify(data.usedwords), JSON.stringify(data.currentwords), id]
                     ).then(data => {
                                 console.log(data.currentwords + "  CURRENT");
-                                sendWord();
+                                callback(id);
                     });
                 }
             } else {
-                data.currentwords = data.words[Math.round(data.words.length * Math.random())];
+                data.currentwords = data.words[Math.floor(data.words.length * Math.random())];
                 while (data.currentwords==null) {
                     console.error("wordsettingerr");
                     data.currentwords = data.words[Math.round(data.words.length * Math.random())];
                 }
-                let currentword = data.currentwords;
-                console.log("The current word is " + currentword);
+                console.log("The current word is " + data.currentwords);
                 this.dao.run(`UPDATE servers SET words = ?, usedwords = ?, currentwords = ? WHERE id = ?`,
                     [JSON.stringify(data.words), JSON.stringify(data.usedwords), JSON.stringify(data.currentwords), id]
                 ).then(data => {
-                    sendWord();
+                    callback(id);
                 });
             }
         })
@@ -200,10 +191,6 @@ class ServerRepository {
         });
         //Purge currentword
     }
-    endGame(serverID) {}
-    startGame(serverID) {
-
-    }
     wordCorrect(id, callback) {
         this.dao.get(
             `SELECT state,score FROM servers WHERE id = ?`,
@@ -219,11 +206,11 @@ class ServerRepository {
             let value = this.dao.run(`UPDATE servers SET score = ? WHERE id = ?`,
                 [score.join("-"), id]
             ).then(() => {
-                callback();
+                callback(id);
             })
         });
     }
-    ready(serverID, sallback) {
+    ready(serverID, callback) {
         this.dao.get(
             `SELECT state,guesser FROM servers WHERE id = ?`,
             [serverID]).then(data => {
@@ -240,12 +227,11 @@ class ServerRepository {
             this.dao.run(`UPDATE servers SET state = ?,guesser = ? WHERE id = ?`,
                 [JSON.stringify(state), score.join("-"), serverID]
             ).then(() => {
-                sallback();
+                callback(serverID);
             })
         })
     }
-
-    makeTeams(serverID,recallback) {
+    makeTeams(serverID,callback) {
         this.dao.get(
             `SELECT players FROM servers WHERE id = ?`,
             [serverID]).then(data => {
@@ -266,7 +252,7 @@ class ServerRepository {
                 this.dao.run(`UPDATE servers SET team1 = ?, team2 = ? WHERE id = ?`,
                     [JSON.stringify(first), JSON.stringify(second), serverID]
                 ).then(data => {
-                    recallback();
+                    callback(serverID);
                     return data
                 });
             } else {
@@ -277,23 +263,23 @@ class ServerRepository {
                 this.dao.run(`UPDATE servers SET team1 = ?, team2 = ? WHERE id = ?`,
                     [JSON.stringify(first), JSON.stringify(second), serverID]
                 ).then(data => {
-                    recallback();
+                    callback(serverID);
                     return data
                 });
             }
         })
     }
-    goAdd(id,precallback) {
+    goAdd(id,callback) {
         this.dao.run(`UPDATE servers SET state = ? WHERE id = ?`,
         [JSON.stringify("ADD_WORDS"), id]
         ).then(data => {
-            precallback(data)});
+            callback(id)});
     }
-    pause(id,precallback) {
+    pause(id,callback) {
         this.dao.run(`UPDATE servers SET state = ? WHERE id = ?`,
         [JSON.stringify("PAUSE"), id]
         ).then(data => {
-            precallback(data)});
+            callback(data)});
     }
     getAll() {
         return this.dao.run(
@@ -307,11 +293,11 @@ class ServerRepository {
             callback(data)
         });
     }
-    getID(name, extraFunc) {
+    getID(name, callback) {
         this.dao.get(
             `SELECT id FROM servers WHERE name= ?`, [name]).then(data => {
             console.log(data.id);
-            extraFunc(data.id);
+            callback(data.id);
         })
     }
 
