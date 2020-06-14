@@ -169,8 +169,10 @@
                     Next Guesser:
                     <b class="font-weight-black">{{ nextGuesser }}</b>
                     <br />
-                    Words used last round:
-                    <b class="font-weight-black">{{ usedWordsCurrent.join(", ") }}</b>
+                    
+                    <b class="font-weight-black">Incorrect/Skipped: {{ incorrectWordsCurrent.join(", ") }}</b>
+                    <br />
+                    <b class="font-weight-black">Correct: {{ correctWordsCurrent.join(", ") }}</b>
                     <br />
                   </h3>
                   <!--
@@ -354,8 +356,10 @@ export default {
       firstRun: true,
       playerName: false,
       lastState: null,
-      usedWordsLast:[""],
-      usedWordsCurrent:[],
+      incorrectWordsLast:[""],
+      incorrectWordsCurrent:[],
+      correctWordsLast:[""],
+      correctWordsCurrent:[],
       myName: "",
       words: [],
       currentWordAdd: "",
@@ -404,8 +408,10 @@ export default {
             }
             if (JSON.parse(data.data.state)=="PAUSE") {
               //Get used words, Remove all in old array, leaving only new ones.
-              this.usedWordsCurrent=JSON.parse(data.data.usedwords).filter(x=>{return !this.usedWordsLast.includes(x)})
-              this.usedWordsLast=JSON.parse(data.data.usedwords);
+              this.incorrectWordsCurrent=JSON.parse(data.data.incorrectwords).filter(x=>{return !this.incorrectWordsLast.includes(x)})
+              this.incorrectWordsLast=JSON.parse(data.data.incorrectwords);
+              this.correctWordsCurrent=JSON.parse(data.data.correctwords).filter(x=>{return !this.correctWordsLast.includes(x)})
+              this.correctWordsLast=JSON.parse(data.data.correctwords);
             }
           }
           break;

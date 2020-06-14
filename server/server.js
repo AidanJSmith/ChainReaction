@@ -46,7 +46,7 @@ wss.on('connection', (ws,req) => {
           db.addWords(message.id,message.words)
           break;
         case "nextWord":
-            db.nextWord(message.id,getServerUpdateState);
+            db.nextWord(message.id,getServerUpdateState,false);
             break;
         case "heartbeat":
             break;
@@ -54,7 +54,7 @@ wss.on('connection', (ws,req) => {
             db.goAdd(message.id,getServerUpdateState);
             break;
         case "wordIncorrect":
-            db.nextWord(message.id,getServerUpdateState);
+            db.nextWord(message.id,getServerUpdateState,false);
             break;
         case "wordCorrect":
             //Go to next round. MasterUser On Each Team Has the ability to do this.
@@ -62,7 +62,7 @@ wss.on('connection', (ws,req) => {
                 console.log("Next word")
                 db.wordCorrect(message.id,getServerUpdateState);
             }
-            db.nextWord(message.id,wordCorrectCallback);
+            db.nextWord(message.id,wordCorrectCallback,true);
             break;
         case "skipWord":
             db.skipWord(message.id,getServerUpdateState);
