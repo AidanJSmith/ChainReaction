@@ -169,10 +169,13 @@
                     Next Guesser:
                     <b class="font-weight-black">{{ nextGuesser }}</b>
                     <br />
-                    
-                    <b class="font-weight-black">Incorrect/Skipped: {{ incorrectWordsCurrent.join(", ") }}</b>
+                    <div>Click to switch from correct to incorrect</div>
+                    <b class="font-weight-black">Incorrect/Skipped: <div v-for="word in incorrectWordsCurrent.slice(0,-1)" :key="word" @click="swapFalse(word)" class="wordDisplay"> {{word}}, </div> </b>
+                    <b class="font-weight-black"> <div v-for="word in incorrectWordsCurrent.slice(-1)" :key="word" class="wordDisplay" @click="swapFalse(word)"> {{word}} </div> </b>
+
                     <br />
-                    <b class="font-weight-black">Correct: {{ correctWordsCurrent.join(", ") }}</b>
+                    <b class="font-weight-black">Correct: <div v-for="word in correctWordsCurrent.slice(0,-1)" :key="word" class="wordDisplay" @click="swapTrue(word)"> {{word}}, </div> </b>
+                    <b class="font-weight-black"> <div v-for="word in correctWordsCurrent.slice(-1)" :key="word" class="wordDisplay" @click="swapTrue(word)"> {{word}} </div> </b>
                     <br />
                   </h3>
                   <!--
@@ -491,6 +494,26 @@ export default {
         );
       }
     },
+    swapTrue(toSwap) {
+      this.socket.send(
+        JSON.stringify({
+          type: "swapTrue",
+          id: this.id,
+          word: toSwap
+        })
+      );
+      console.log("Sent swapTrue");
+    },
+    swapFalse(toSwap) {
+      this.socket.send(
+        JSON.stringify({
+          type: "swapFalse",
+          id: this.id,
+          word: toSwap
+        })
+      );
+      console.log("Sent swapFalse");
+    },
     getActiveGuesser() {
       let team1 = eval(this.game.team1);
       let team2 = eval(this.game.team2);
@@ -614,6 +637,13 @@ export default {
 @mixin for-big-desktop-up {
   @media (min-width: 1800px) {
     @content;
+  }
+}
+.wordDisplay {
+  cursor: pointer;
+  border-radius: 4%;
+  &:hover {
+    color: #f77c60;
   }
 }
 .db {
