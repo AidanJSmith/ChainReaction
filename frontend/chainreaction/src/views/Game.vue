@@ -16,7 +16,7 @@
         <v-row>
           <div class="wrapper logo mx-auto">
             <h1 class="display-3 mx-auto font-weight-black logo">CHAIN REACTION</h1>
-            <h3 class="display-1 mx-auto logo">v1.2</h3>
+            <h3 class="display-1 mx-auto logo">v1.4</h3>
           </div>
         </v-row>
         <v-col cols="12" sm="6" md="3" class="mx-auto">
@@ -30,7 +30,7 @@
                 v-model="myName"
                 maxlength="20"
                 :rules="[wordValidator]"
-                v-on:keyup.13="join()"
+                v-on:keyup.13="(wordValidator(myName)) ? join() : null"
               ></v-text-field>
             </v-col>
             <v-btn x-large depressed @click="join()" class="mx-auto">Join Game</v-btn>
@@ -44,7 +44,7 @@
           <v-row>
             <div class="wrapper logo mx-auto">
               <h1 class="display-3 mx-auto font-weight-black logo">CHAIN REACTION</h1>
-              <h3 class="display-1 mx-auto logo">v1.2</h3>
+              <h3 class="display-1 mx-auto logo">v1.4</h3>
             </div>
           </v-row>
           <v-col cols="12" sm="6" md="3" class="mx-auto enter">
@@ -96,6 +96,14 @@
                 </v-row>
               </div>
             </v-row>
+            <v-row>
+              <v-btn
+                x-large
+                depressed
+                @click="windowToClipBoard()"
+                class="mtop mx-auto"
+              >Copy Game Link</v-btn>
+            </v-row>
           </v-col>
         </v-col>
       </div>
@@ -119,7 +127,7 @@
                 v-model="currentWordAdd"
                 maxlength="50"
                 :rules="[wordValidator]"
-                v-on:keyup.13="pushNextWord()"
+                v-on:keyup.13="(wordValidator(currentWordAdd)) ? pushNextWord() : null"
               ></v-text-field>
             </v-col>
           </v-row>
@@ -168,14 +176,59 @@
                   <h3 class="display-3 mx-auto logo">
                     Next Guesser:
                     <b class="font-weight-black">{{ nextGuesser }}</b>
+                    <br />Order of Next Guessers:
+                    <b class="font-weight-black">
+                      {{ membersInInactiveTeam
+                      .slice(
+                      1 + membersInInactiveTeam.indexOf(nextGuesser)
+                      )
+                      .concat(
+                      membersInInactiveTeam.slice(
+                      0,
+                      membersInInactiveTeam.indexOf(nextGuesser)
+                      )
+                      )
+                      .join(", ")
+                      }}
+                    </b>
                     <br />
-                    <div>Click to switch from correct to incorrect</div>
-                    <b class="font-weight-black">Incorrect/Skipped: <div v-for="word in incorrectWordsCurrent.slice(0,-1)" :key="word" @click="swapFalse(word)" class="wordDisplay"> {{word}}, </div> </b>
-                    <b class="font-weight-black"> <div v-for="word in incorrectWordsCurrent.slice(-1)" :key="word" class="wordDisplay" @click="swapFalse(word)"> {{word}} </div> </b>
+                    <div v-if="master">Click to switch on a word to switch between lists.</div>
+                    <b class="font-weight-black">
+                      Incorrect/Skipped:
+                      <div
+                        v-for="word in incorrectWordsCurrent.slice(0,-1)"
+                        :key="word"
+                        @click="swapFalse(word)"
+                        :class="master ? `wordDisplay` : ``"
+                      >{{word}},</div>
+                    </b>
+                    <b class="font-weight-black">
+                      <div
+                        v-for="word in incorrectWordsCurrent.slice(-1)"
+                        :key="word"
+                        :class="master ? `wordDisplay` : ``"
+                        @click="swapFalse(word)"
+                      >{{word}}</div>
+                    </b>
 
                     <br />
-                    <b class="font-weight-black">Correct: <div v-for="word in correctWordsCurrent.slice(0,-1)" :key="word" class="wordDisplay" @click="swapTrue(word)"> {{word}}, </div> </b>
-                    <b class="font-weight-black"> <div v-for="word in correctWordsCurrent.slice(-1)" :key="word" class="wordDisplay" @click="swapTrue(word)"> {{word}} </div> </b>
+                    <b class="font-weight-black">
+                      Correct:
+                      <div
+                        v-for="word in correctWordsCurrent.slice(0,-1)"
+                        :key="word"
+                        :class="master ? `wordDisplay` : ``"
+                        @click="swapTrue(word)"
+                      >{{word}},</div>
+                    </b>
+                    <b class="font-weight-black">
+                      <div
+                        v-for="word in correctWordsCurrent.slice(-1)"
+                        :key="word"
+                        :class="master ? `wordDisplay` : ``"
+                        @click="swapTrue(word)"
+                      >{{word}}</div>
+                    </b>
                     <br />
                   </h3>
                   <!--
@@ -258,7 +311,9 @@
                 </h3>
               </div>
             </v-row>
-            <v-row class="mx=auto" v-if="String(membersInActiveTeam
+            <v-row
+              class="mx=auto"
+              v-if="String(membersInActiveTeam
                   .slice(
                   1 + membersInActiveTeam.indexOf(getActiveGuesser())
                   )
@@ -267,7 +322,8 @@
                   0,
                   membersInActiveTeam.indexOf(getActiveGuesser())
                   )
-                  )[0])==String(myName)">
+                  )[0])==String(myName)"
+            >
               <v-row>
                 <v-btn x-large depressed @click="wrong()" class="mx-auto bb">Skip!</v-btn>
               </v-row>
@@ -359,17 +415,17 @@ export default {
       firstRun: true,
       playerName: false,
       lastState: null,
-      incorrectWordsLast:[""],
-      incorrectWordsCurrent:[],
-      correctWordsLast:[""],
-      correctWordsCurrent:[],
+      incorrectWordsLast: [""],
+      incorrectWordsCurrent: [],
+      correctWordsLast: [""],
+      correctWordsCurrent: [],
       myName: "",
-      backupCorrectWords:[],
-      backupIncorrectWords:[],
+      backupCorrectWords: [],
+      backupIncorrectWords: [],
       words: [],
       currentWordAdd: "",
       wordsAdded: 0,
-      wordsMax: 2,
+      wordsMax: 13,
       master: false,
       id: -1,
       game: null
@@ -378,7 +434,7 @@ export default {
   mounted() {
     //Setup Websockets
     //s://chainreactionserver.herokuapp.com
-    this.socket = new WebSocket(`ws://localhost:3000`);
+    this.socket = new WebSocket(`wss://chainreactionserver.herokuapp.com`);
     this.socket.onopen = async () => {
       console.log("SENDING ");
       let id = this.$route.params.id;
@@ -405,29 +461,44 @@ export default {
         case "patchCorrectIncorrect":
           console.log(data.data);
           if (this.myName != "" && data.data.id == this.id) {
-            console.log("working....")
-            console.log(data.data.incorrectword)
-            this.incorrectWordsCurrent=data.data.incorrectwords.filter(x=>{return !this.backupIncorrectWords.includes(x)});
-            this.correctWordsCurrent=data.data.correctwords.filter(x=>{return !this.backupCorrectWords.includes(x)});
+            console.log("working....");
+            console.log(data.data.incorrectword);
+            this.incorrectWordsCurrent = data.data.incorrectwords.filter(x => {
+              return !this.backupIncorrectWords.includes(x);
+            });
+            this.correctWordsCurrent = data.data.correctwords.filter(x => {
+              return !this.backupCorrectWords.includes(x);
+            });
           }
           break;
         case "updateState":
           if (this.myName != "" && data.data.id == this.id) {
-            if (JSON.parse(data.data.state)!="GAME_OVER") {
+            if (JSON.parse(data.data.state) != "GAME_OVER") {
               this.game = data.data;
               console.log(data.data);
             }
-            if (JSON.parse(data.data.state)=="TEAM2_GUESS"||JSON.parse(data.data.state)=="TEAM1_GUESS") {
-              this.lastState=data.data.state;
+            if (
+              JSON.parse(data.data.state) == "TEAM2_GUESS" ||
+              JSON.parse(data.data.state) == "TEAM1_GUESS"
+            ) {
+              this.lastState = data.data.state;
             }
-            if (JSON.parse(data.data.state)=="PAUSE") {
+            if (JSON.parse(data.data.state) == "PAUSE") {
               //Get used words, Remove all in old array, leaving only new ones.
-              this.backupIncorrectWords=this.incorrectWordsLast;
-              this.backupCorrectWords=this.correctWordsLast;
-              this.incorrectWordsCurrent=JSON.parse(data.data.incorrectwords).filter(x=>{return !this.incorrectWordsLast.includes(x)})
-              this.incorrectWordsLast=JSON.parse(data.data.incorrectwords);
-              this.correctWordsCurrent=JSON.parse(data.data.correctwords).filter(x=>{return !this.correctWordsLast.includes(x)})
-              this.correctWordsLast=JSON.parse(data.data.correctwords);
+              this.backupIncorrectWords = this.incorrectWordsLast;
+              this.backupCorrectWords = this.correctWordsLast;
+              this.incorrectWordsCurrent = JSON.parse(
+                data.data.incorrectwords
+              ).filter(x => {
+                return !this.incorrectWordsLast.includes(x);
+              });
+              this.incorrectWordsLast = JSON.parse(data.data.incorrectwords);
+              this.correctWordsCurrent = JSON.parse(
+                data.data.correctwords
+              ).filter(x => {
+                return !this.correctWordsLast.includes(x);
+              });
+              this.correctWordsLast = JSON.parse(data.data.correctwords);
             }
           }
           break;
@@ -507,24 +578,42 @@ export default {
         );
       }
     },
-    swapTrue(toSwap) {
-      this.socket.send(
-        JSON.stringify({
-          type: "swapTrue",
-          id: this.id,
-          word: toSwap
-        })
+    getWindow() {
+      return window.location.href;
+    },
+    windowToClipBoard() {
+      let text = this.getWindow();
+      navigator.clipboard.writeText(text).then(
+        function() {
+          console.log("Async: Copying to clipboard was successful!");
+        },
+        function(err) {
+          console.error("Async: Could not copy text: ", err);
+        }
       );
+    },
+    swapTrue(toSwap) {
+      if (this.master) {
+        this.socket.send(
+          JSON.stringify({
+            type: "swapTrue",
+            id: this.id,
+            word: toSwap
+          })
+        );
+      }
       console.log("Sent swapTrue");
     },
     swapFalse(toSwap) {
-      this.socket.send(
-        JSON.stringify({
-          type: "swapFalse",
-          id: this.id,
-          word: toSwap
-        })
-      );
+      if (this.master) {
+        this.socket.send(
+          JSON.stringify({
+            type: "swapFalse",
+            id: this.id,
+            word: toSwap
+          })
+        );
+      }
       console.log("Sent swapFalse");
     },
     getActiveGuesser() {
@@ -600,28 +689,28 @@ export default {
       }
       return JSON.parse(this.game.team1);
     },
-    membersInActiveTeamReverse() {
-      if (JSON.parse(this.game.state) == `TEAM1_GUESS`) {
+    membersInInactiveTeam() {
+     let guesser=this.game.guesser.split("-");
+     if (Number(guesser[0])<=Number(guesser[1])) {
+          return JSON.parse(this.game.team1);
+      } else {
         return JSON.parse(this.game.team2);
       }
-      return JSON.parse(this.game.team1);
     },
     nextGuesser() {
       let team2 = eval(this.game.team1);
       let team1 = eval(this.game.team2);
-      console.log("GAME:")
+      console.log("GAME:");
       console.log(this.game);
       console.log(this.lastState);
       if (JSON.parse(this.lastState) == `TEAM2_GUESS`) {
-        console.log("Team 1 predict")
+        console.log("Team 1 predict");
         return team2[
           (Number(this.game.guesser.split("-")[1]) + 1) % team2.length
         ];
       }
-      console.log("TEAM 2 PREDICT")
-      return team1[
-        (Number(this.game.guesser.split("-")[0])) % team1.length
-      ];
+      console.log("TEAM 2 PREDICT");
+      return team1[Number(this.game.guesser.split("-")[0]) % team1.length];
     }
   }
 };

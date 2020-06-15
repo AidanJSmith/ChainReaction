@@ -7,7 +7,7 @@
             <h1 class="display-3 mx-auto font-weight-black logo">
               CHAIN REACTION
             </h1>
-            <h3 class="display-1 mx-auto logo">v1.2</h3>
+            <h3 class="display-1 mx-auto logo">v1.4</h3>
           </div>
         </v-row>
         <v-col cols="12" sm="6" md="3" class="mx-auto">

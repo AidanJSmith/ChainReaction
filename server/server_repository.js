@@ -301,11 +301,11 @@ class ServerRepository {
             let state;
             let score = data.score.split("-");
             let guesser= data.guesser.split("-");
-            if (Number(guesser[0])>Number(guesser[1])) {
-                score[1]=String(Number(score[1])+1);
+            if (Number(guesser[0])<=Number(guesser[1])) {
+                score[1]=Number(score[1])+1;
                 state="TEAM2_GUESS";
             } else {
-                score[0]=String(Number(score[0])+1);
+                score[0]=Number(score[0])+1;
                 state="TEAM1_GUESS";
             }
             data.incorrectwords=JSON.parse(data.incorrectwords);
@@ -335,11 +335,11 @@ class ServerRepository {
             let state;
             let score=data.score.split("-");
             let guesser= data.guesser.split("-");
-            if (Number(guesser[0])>Number(guesser[1])) {
-                score[1]=String(Number(score[1])-1);
+            if (Number(guesser[0])<=Number(guesser[1])) {
+                score[1]=Number(score[1])-1;
                 state="TEAM2_GUESS";
             } else {
-                score[0]=String(Number(score[0])-1);
+                score[0]=Number(score[0])-1;
                 state="TEAM1_GUESS";
             }
             data.incorrectwords=JSON.parse(data.incorrectwords);
