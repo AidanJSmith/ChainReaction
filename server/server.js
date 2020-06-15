@@ -27,6 +27,9 @@ wss.broadcast = function broadcast(msg) {
 function updateState(message,id=0) {
     wss.broadcast(JSON.stringify({type:"updateState",data:message}));
 }
+function patchState(message,id=0) { // Change words in place, for things like editing if a word was correct or not.
+    wss.broadcast(JSON.stringify({type:"patchCorrectIncorrect",data:message}));
+}
 function getServerUpdateState(id) {
     db.getMyServer(id,updateState);
 }
@@ -120,8 +123,14 @@ wss.on('connection', (ws,req) => {
         case "getData":
             db.getMyServer(message.id,updateState);
             break;
+        case "swapFalse":
+            db.swapFalse(message.id,message.word,patchState);
+            break;
+        case "swapTrue":
+            db.swapTrue(message.id,message.word,patchState);
+            break;
         default:
-            console.error(JSON.stringify({"type":"err"}));
+            console.error(JSON.stringify({"type":"err","message":message}));
             break;
             
         

@@ -224,7 +224,7 @@ class ServerRepository {
             [serverID]).then(data => {
                 let state = JSON.parse(data.state);
                 let score = data.guesser.split("-");
-                if (String(score[0])>String(score[1])) {
+                if (Number(score[0])>Number(score[1])) {
                     score[1]=String(Number(score[1])+1);
                     state="TEAM2_GUESS";
                 } else {
@@ -293,6 +293,74 @@ class ServerRepository {
         return this.dao.run(
             `SELECT * FROM servers`,
         )
+    }
+    swapFalse(id,word,callback) {
+        this.dao.get(
+            `SELECT incorrectwords,correctwords,score,guesser FROM servers WHERE id = ?`,
+            [id]).then(data => {
+            let state;
+            let score = data.score.split("-");
+            let guesser= data.guesser.split("-");
+            if (Number(guesser[0])>Number(guesser[1])) {
+                score[1]=String(Number(score[1])+1);
+                state="TEAM2_GUESS";
+            } else {
+                score[0]=String(Number(score[0])+1);
+                state="TEAM1_GUESS";
+            }
+            data.incorrectwords=JSON.parse(data.incorrectwords);
+            data.correctwords=JSON.parse(data.correctwords);
+            if (data.incorrectwords.indexOf(word)!=-1) {
+                data.incorrectwords.splice(data.incorrectwords.indexOf(word),1);
+                data.correctwords.push(word)
+                
+            } else {
+                console.log(`${word} was not found.`)
+                return;
+            }
+            this.dao.run(`UPDATE servers SET incorrectwords = ?, correctwords = ?,score = ? WHERE id = ?`,
+                [JSON.stringify(data.incorrectwords), JSON.stringify(data.correctwords),score.join("-"), id]
+            ).then(() => {
+                console.log("Swapped (F/T)")
+                console.log("SCORE_CHANGED" + score.join("-"));
+                callback({"correctwords":data.correctwords,"incorrectwords":data.incorrectwords, "id":id},id);
+            })
+            
+        });
+    }
+    swapTrue(id,word,callback) {
+        this.dao.get(
+            `SELECT incorrectwords,correctwords,score,guesser FROM servers WHERE id = ?`,
+            [id]).then(data => {
+            let state;
+            let score=data.score.split("-");
+            let guesser= data.guesser.split("-");
+            if (Number(guesser[0])>Number(guesser[1])) {
+                score[1]=String(Number(score[1])-1);
+                state="TEAM2_GUESS";
+            } else {
+                score[0]=String(Number(score[0])-1);
+                state="TEAM1_GUESS";
+            }
+            data.incorrectwords=JSON.parse(data.incorrectwords);
+            data.correctwords=JSON.parse(data.correctwords);
+            if (data.correctwords.includes(word)) {
+                data.correctwords.splice(data.correctwords.indexOf(word),1);
+                data.incorrectwords.push(word)
+            } else {
+                console.log(`${word} was not found.`)
+                return;
+            }
+            
+            this.dao.run(`UPDATE servers SET incorrectwords = ?, correctwords = ?, score = ? WHERE id = ?`,
+                [JSON.stringify(data.incorrectwords), JSON.stringify(data.correctwords),score.join("-"), id]
+            ).then(() => {
+                console.log("SCORE_CHANGED" + score.join("-"));
+                console.log("Swapped (T/F)")
+                callback({"correctwords":data.correctwords,"incorrectwords":data.incorrectwords, "id":id},id);
+            })
+            
+        });
     }
     getMyServer(id, callback) {
         this.dao.get(

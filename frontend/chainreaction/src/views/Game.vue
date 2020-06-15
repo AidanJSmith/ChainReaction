@@ -364,6 +364,8 @@ export default {
       correctWordsLast:[""],
       correctWordsCurrent:[],
       myName: "",
+      backupCorrectWords:[],
+      backupIncorrectWords:[],
       words: [],
       currentWordAdd: "",
       wordsAdded: 0,
@@ -400,6 +402,15 @@ export default {
         case "startup":
           console.log("Server online.");
           break;
+        case "patchCorrectIncorrect":
+          console.log(data.data);
+          if (this.myName != "" && data.data.id == this.id) {
+            console.log("working....")
+            console.log(data.data.incorrectword)
+            this.incorrectWordsCurrent=data.data.incorrectwords.filter(x=>{return !this.backupIncorrectWords.includes(x)});
+            this.correctWordsCurrent=data.data.correctwords.filter(x=>{return !this.backupCorrectWords.includes(x)});
+          }
+          break;
         case "updateState":
           if (this.myName != "" && data.data.id == this.id) {
             if (JSON.parse(data.data.state)!="GAME_OVER") {
@@ -411,6 +422,8 @@ export default {
             }
             if (JSON.parse(data.data.state)=="PAUSE") {
               //Get used words, Remove all in old array, leaving only new ones.
+              this.backupIncorrectWords=this.incorrectWordsLast;
+              this.backupCorrectWords=this.correctWordsLast;
               this.incorrectWordsCurrent=JSON.parse(data.data.incorrectwords).filter(x=>{return !this.incorrectWordsLast.includes(x)})
               this.incorrectWordsLast=JSON.parse(data.data.incorrectwords);
               this.correctWordsCurrent=JSON.parse(data.data.correctwords).filter(x=>{return !this.correctWordsLast.includes(x)})
