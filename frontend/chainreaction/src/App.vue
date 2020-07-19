@@ -11,12 +11,11 @@ export default {
   name: "App",
   data: () => ({
     socket: ""
-  }),
+  })
 };
 </script>
 <style lang="scss">
 .bkg {
-    background: rgb(96, 247, 209);
-} 
- 
+  background: rgb(96, 247, 209);
+}
 </style>

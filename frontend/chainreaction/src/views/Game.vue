@@ -1,11 +1,7 @@
 <template>
   <!-- 
     To-Do:
-      Prevent Buttons from being pressed multiple times.
-      New Mode? Text Only?
-      Show other team last word?
-      Word Review At The End of Rounds (Possibly Some Control For that?)
-      Server Garbage Collection (Every day at midnight, just dump database, probably + whenever game ends, reset db)
+      Add additional Menu after the pause screen?
   -->
   <div class="home">
     <div v-if="master">
@@ -15,8 +11,10 @@
       <v-col>
         <v-row>
           <div class="wrapper logo mx-auto">
-            <h1 class="display-3 mx-auto font-weight-black logo">CHAIN REACTION</h1>
-            <h3 class="display-1 mx-auto logo">v1.4</h3>
+            <h1 class="display-3 mx-auto font-weight-black logo">
+              CHAIN REACTION
+            </h1>
+            <h3 class="display-1 mx-auto logo">v2.0</h3>
           </div>
         </v-row>
         <v-col cols="12" sm="6" md="3" class="mx-auto">
@@ -30,10 +28,12 @@
                 v-model="myName"
                 maxlength="20"
                 :rules="[wordValidator]"
-                v-on:keyup.13="(wordValidator(myName)) ? join() : null"
+                v-on:keyup.13="wordValidator(myName) ? join() : null"
               ></v-text-field>
             </v-col>
-            <v-btn x-large depressed @click="join()" class="mx-auto">Join Game</v-btn>
+            <v-btn x-large depressed @click="join()" class="mx-auto"
+              >Join Game</v-btn
+            >
           </v-row>
         </v-col>
       </v-col>
@@ -43,20 +43,33 @@
         <v-col>
           <v-row>
             <div class="wrapper logo mx-auto">
-              <h1 class="display-3 mx-auto font-weight-black logo">CHAIN REACTION</h1>
-              <h3 class="display-1 mx-auto logo">v1.4</h3>
+              <h1 class="display-3 mx-auto font-weight-black logo">
+                CHAIN REACTION
+              </h1>
+              <h3 class="display-1 mx-auto logo">v2.0</h3>
             </div>
           </v-row>
           <v-col cols="12" sm="6" md="3" class="mx-auto enter">
             <v-row>
-              <v-btn x-large depressed @click="shuffle()" class="mtop mx-auto">Shuffle Teams</v-btn>
+              <v-btn x-large depressed @click="shuffle()" class="mtop mx-auto"
+                >Shuffle Teams</v-btn
+              >
+              <v-btn
+                x-large
+                depressed
+                @click="master = true"
+                class="mtop mx-auto"
+                v-if="!master"
+                >Become Gamemaster</v-btn
+              >
               <v-btn
                 x-large
                 v-if="master"
                 depressed
                 @click="goAdd()"
                 class="mx-auto mtop"
-              >Start Game</v-btn>
+                >Start Game</v-btn
+              >
               <h2 v-else>Wait for the gamemaster to start the game.</h2>
             </v-row>
             <v-row>
@@ -64,9 +77,7 @@
                 <br />
                 <div class="db mediumScalar">Current players:</div>
                 <b class="db mediumScalar">
-                  {{
-                  JSON.parse(game.players).join(", ")
-                  }}
+                  {{ JSON.parse(game.players).join(", ") }}
                 </b>
               </div>
             </v-row>
@@ -77,9 +88,9 @@
                     <div class="smallScalar">
                       Team 1:
                       {{
-                      game.team1 != null
-                      ? JSON.parse(game.team1).join(", ")
-                      : "loading"
+                        game.team1 != null
+                          ? JSON.parse(game.team1).join(", ")
+                          : "loading"
                       }}
                     </div>
                   </v-col>
@@ -87,9 +98,9 @@
                     <div class="smallScalar">
                       Team 2:
                       {{
-                      game.team1 != null
-                      ? JSON.parse(game.team2).join(", ")
-                      : "loading"
+                        game.team1 != null
+                          ? JSON.parse(game.team2).join(", ")
+                          : "loading"
                       }}
                     </div>
                   </v-col>
@@ -102,7 +113,8 @@
                 depressed
                 @click="windowToClipBoard()"
                 class="mtop mx-auto"
-              >Copy Game Link</v-btn>
+                >Copy Game Link</v-btn
+              >
             </v-row>
           </v-col>
         </v-col>
@@ -113,8 +125,12 @@
         <v-col>
           <v-row>
             <div class="wrapper logo mx-auto">
-              <h1 class="display-3 mx-auto font-weight-black logo">Enter a word.</h1>
-              <h3 class="display-1 mx-auto logo">{{ wordsAdded }}/{{ wordsMax }}</h3>
+              <h1 class="display-3 mx-auto font-weight-black logo">
+                Enter a word.
+              </h1>
+              <h3 class="display-1 mx-auto logo">
+                {{ wordsAdded }}/{{ wordsMax }}
+              </h3>
             </div>
           </v-row>
           <v-row>
@@ -127,12 +143,20 @@
                 v-model="currentWordAdd"
                 maxlength="50"
                 :rules="[wordValidator]"
-                v-on:keyup.13="(wordValidator(currentWordAdd)) ? pushNextWord() : null"
+                v-on:keyup.13="
+                  wordValidator(currentWordAdd) ? pushNextWord() : null
+                "
               ></v-text-field>
             </v-col>
           </v-row>
           <v-row class="mx-auto">
-            <v-btn x-large depressed @click="pushNextWord()" class="mx-auto enter">SUBMIT WORD</v-btn>
+            <v-btn
+              x-large
+              depressed
+              @click="pushNextWord()"
+              class="mx-auto enter"
+              >SUBMIT WORD</v-btn
+            >
           </v-row>
         </v-col>
       </div>
@@ -140,18 +164,12 @@
         <v-col>
           <v-row>
             <div class="wrapper logo mx-auto">
-              <h1 class="display-4 mx-auto font-weight-black logo">Waiting for other players...</h1>
+              <h1 class="display-4 mx-auto font-weight-black logo">
+                Waiting for other players...
+              </h1>
             </div>
           </v-row>
-          <v-row>
-            <v-btn
-              x-large
-              depressed
-              v-if="master"
-              @click="toGuessing()"
-              class="mx-auto enter"
-            >Everyone is Ready (Ask Verbally Before v2)</v-btn>
-          </v-row>
+          <v-row> </v-row>
         </v-col>
       </div>
     </div>
@@ -169,65 +187,73 @@
                 <div class="wrapper logo mx-auto">
                   <h1 class="display-4 mx-auto logo">
                     Is everyone ready for the next round? Words left:
-                    <b
-                      class="font-weight-black"
-                    >{{ JSON.parse(game.words).length }}</b>
+                    <b class="font-weight-black">{{
+                      JSON.parse(game.words).length
+                    }}</b>
                   </h1>
                   <h3 class="display-3 mx-auto logo">
                     Next Guesser:
                     <b class="font-weight-black">{{ nextGuesser }}</b>
-                    <br />Order of Next Guessers:
+                    <br />Order of Next Question Givers:
                     <b class="font-weight-black">
-                      {{ membersInInactiveTeam
-                      .slice(
-                      1 + membersInInactiveTeam.indexOf(nextGuesser)
-                      )
-                      .concat(
-                      membersInInactiveTeam.slice(
-                      0,
-                      membersInInactiveTeam.indexOf(nextGuesser)
-                      )
-                      )
-                      .join(", ")
+                      {{
+                        membersInInactiveTeam
+                          .slice(1 + membersInInactiveTeam.indexOf(nextGuesser))
+                          .concat(
+                            membersInInactiveTeam.slice(
+                              0,
+                              membersInInactiveTeam.indexOf(nextGuesser)
+                            )
+                          )
+                          .join(", ")
                       }}
                     </b>
                     <br />
-                    <div v-if="master">Click to switch on a word to switch between lists.</div>
-                    <b class="font-weight-black">
+                    <div v-if="master && !firstRound">
+                      Click to switch on a word to switch between lists.
+                    </div>
+                    <b class="font-weight-black" v-if="!firstRound">
                       Incorrect/Skipped:
                       <div
-                        v-for="word in incorrectWordsCurrent.slice(0,-1)"
+                        v-for="word in incorrectWordsCurrent.slice(0, -1)"
                         :key="word"
                         @click="swapFalse(word)"
                         :class="master ? `wordDisplay` : ``"
-                      >{{word}},</div>
+                      >
+                        {{ word }},
+                      </div>
                     </b>
-                    <b class="font-weight-black">
+                    <b class="font-weight-black" v-if="!firstRound">
                       <div
                         v-for="word in incorrectWordsCurrent.slice(-1)"
                         :key="word"
                         :class="master ? `wordDisplay` : ``"
                         @click="swapFalse(word)"
-                      >{{word}}</div>
+                      >
+                        {{ word }}
+                      </div>
                     </b>
-
                     <br />
-                    <b class="font-weight-black">
+                    <b class="font-weight-black" v-if="!firstRound">
                       Correct:
                       <div
-                        v-for="word in correctWordsCurrent.slice(0,-1)"
+                        v-for="word in correctWordsCurrent.slice(0, -1)"
                         :key="word"
                         :class="master ? `wordDisplay` : ``"
                         @click="swapTrue(word)"
-                      >{{word}},</div>
+                      >
+                        {{ word }},
+                      </div>
                     </b>
-                    <b class="font-weight-black">
+                    <b class="font-weight-black" v-if="!firstRound">
                       <div
                         v-for="word in correctWordsCurrent.slice(-1)"
                         :key="word"
                         :class="master ? `wordDisplay` : ``"
                         @click="swapTrue(word)"
-                      >{{word}}</div>
+                      >
+                        {{ word }}
+                      </div>
                     </b>
                     <br />
                   </h3>
@@ -239,25 +265,37 @@
                   -->
                 </div>
               </v-row>
-              <v-row v-if="master">
+              <v-row v-if="master && firstRound">
+                <v-btn
+                  x-large
+                  depressed
+                  @click="toGuessing()"
+                  class="mx-auto enter mtop"
+                  >Start Game</v-btn
+                >
+              </v-row>
+              <v-row v-if="master && !firstRound">
                 <v-btn
                   x-large
                   depressed
                   @click="corrnext()"
                   class="mx-auto enter mtop"
-                >Last word correct?</v-btn>
+                  >Last word correct</v-btn
+                >
                 <v-btn
                   x-large
                   depressed
                   @click="wrongnext()"
                   class="mx-auto enter mtop"
-                >Last word incorrect?</v-btn>
+                  >Last word incorrect</v-btn
+                >
                 <v-btn
                   x-large
                   depressed
-                  @click="guessPause()"
+                  @click="continueNext()"
                   class="mx-auto enter mtop"
-                >Next Team Gets Last word</v-btn>
+                  >Next Team Gets Last word</v-btn
+                >
               </v-row>
             </v-col>
           </div>
@@ -276,9 +314,10 @@
           <v-col>
             <v-row>
               <div class="wrapper logo mx-auto">
-                <h1
-                  class="db mx-auto font-weight-black logo"
-                >You are the guesser. Your teammates will give you clues. Please wait...</h1>
+                <h1 class="db mx-auto font-weight-black logo">
+                  You are the guesser. Your teammates will give you clues.
+                  Please wait...
+                </h1>
               </div>
             </v-row>
           </v-col>
@@ -287,51 +326,75 @@
           <v-col>
             <v-row>
               <div class="wrapper logo mx-auto">
-                <h3 class="db mx-auto">Cluegivers, start composing your sentence.</h3>
+                <h3 class="db mx-auto">
+                  Cluegivers, start composing your sentence.
+                </h3>
               </div>
             </v-row>
             <v-row>
               <div class="wrapper logo mx-auto">
                 <h3 class="db-2 mx-auto">
-                  Player Order: {{
-                  membersInActiveTeam
-                  .slice(
-                  1 + membersInActiveTeam.indexOf(getActiveGuesser())
-                  )
-                  .concat(
-                  membersInActiveTeam.slice(
-                  0,
-                  membersInActiveTeam.indexOf(getActiveGuesser())
-                  )
-                  )
-                  .join(", ")
+                  Player Order:
+                  {{
+                    membersInActiveTeam
+                      .slice(
+                        1 + membersInActiveTeam.indexOf(getActiveGuesser())
+                      )
+                      .concat(
+                        membersInActiveTeam.slice(
+                          0,
+                          membersInActiveTeam.indexOf(getActiveGuesser())
+                        )
+                      )
+                      .join(", ")
                   }}
                   <br />
-                  <i>Guesser: {{getActiveGuesser()}}</i>
+                  <i>Guesser: {{ getActiveGuesser() }}</i>
                 </h3>
               </div>
             </v-row>
             <v-row
               class="mx=auto"
-              v-if="String(membersInActiveTeam
-                  .slice(
-                  1 + membersInActiveTeam.indexOf(getActiveGuesser())
-                  )
-                  .concat(
-                  membersInActiveTeam.slice(
-                  0,
-                  membersInActiveTeam.indexOf(getActiveGuesser())
-                  )
-                  )[0])==String(myName)"
+              v-if="
+                String(
+                  membersInActiveTeam
+                    .slice(1 + membersInActiveTeam.indexOf(getActiveGuesser()))
+                    .concat(
+                      membersInActiveTeam.slice(
+                        0,
+                        membersInActiveTeam.indexOf(getActiveGuesser())
+                      )
+                    )[0]
+                ) == String(myName)
+              "
             >
-              <v-row>
-                <v-btn x-large depressed @click="wrong()" class="mx-auto bb">Skip!</v-btn>
+              <v-row
+                >
+                <v-btn
+                  x-large
+                  depressed
+                  @click="wrong()"
+                  :class="`mx-auto bb ` + hasClicked"
+                  >Skip!</v-btn
+                >
               </v-row>
               <v-row>
-                <v-btn x-large depressed @click="next()" class="mx-auto bb">Correct!</v-btn>
+                <v-btn
+                  x-large
+                  depressed
+                  @click="next()"
+                  :class="`mx-auto bb ` + hasClicked"
+                  >Correct!</v-btn
+                >
               </v-row>
               <v-row>
-                <v-btn x-large depressed @click="wrong()" class="mx-auto bb">Incorrect!</v-btn>
+                <v-btn
+                  x-large
+                  depressed
+                  @click="wrong()"
+                  :class="`mx-auto bb ` + hasClicked"
+                  >Incorrect!</v-btn
+                >
               </v-row>
             </v-row>
           </v-col>
@@ -339,7 +402,7 @@
             <div class="wrapper logo mx-auto">
               <h3 class="db-4 mx-auto font-weight-black" style="margin-top:10%">
                 Word:
-                <div class="highlight">{{ (game.currentwords) }}</div>
+                <div class="highlight">{{ game.currentwords }}</div>
               </h3>
             </div>
           </v-row>
@@ -351,14 +414,14 @@
           <v-col>
             <v-row>
               <div class="wrapper logo mx-auto">
-                <h1
-                  class="display-4 mx-auto font-weight-black"
-                >You are on the other team. Wait for other guessers.</h1>
+                <h1 class="display-4 mx-auto font-weight-black">
+                  You are on the other team. Wait for other guessers.
+                </h1>
                 <br />
                 <h2 class="display-3 mx-auto font-weight-black">
-                  Team1: {{JSON.parse(game.team1).join(", ")}}
+                  Team1: {{ JSON.parse(game.team1).join(", ") }}
                   <br />
-                  Team2: {{JSON.parse(game.team2).join(", ")}}
+                  Team2: {{ JSON.parse(game.team2).join(", ") }}
                 </h2>
               </div>
             </v-row>
@@ -379,22 +442,29 @@
               <h1 class="display-3 mx-auto font-weight-black">Good Game!</h1>
             </div>
           </v-row>
+          <v-row>
+            <v-btn x-large depressed @click="reset()" class="mx-auto"
+              >New Game</v-btn
+            >
+          </v-row>
           <v-row class="wrapper mx-auto">
             <h2 class="display-4 mx-auto">Final Score: {{ game.score }}</h2>
           </v-row>
           <v-row class="wrapper mx-auto">
             <div class="mx-auto" v-if="winner == 1">
-              <h1
-                class="display-3 mx-auto font-weight-black"
-              >Congratulations: {{ JSON.parse(game.team1).join(",") }}</h1>
+              <h1 class="display-3 mx-auto font-weight-black">
+                Congratulations: {{ JSON.parse(game.team1).join(",") }}
+              </h1>
             </div>
             <div class="mx-auto" v-if="winner == 2">
-              <h1
-                class="display-3 mx-auto font-weight-black"
-              >Congratulations: {{ JSON.parse(game.team2).join(",") }}</h1>
+              <h1 class="display-3 mx-auto font-weight-black">
+                Congratulations: {{ JSON.parse(game.team2).join(",") }}
+              </h1>
             </div>
             <div class="mx-auto" v-if="winner == 'tie'">
-              <h1 class="display-3 mx-auto font-weight-black">It was a tie! Everyone is a winner.</h1>
+              <h1 class="display-3 mx-auto font-weight-black">
+                It was a tie! Everyone is a winner.
+              </h1>
             </div>
           </v-row>
         </v-col>
@@ -425,16 +495,17 @@ export default {
       words: [],
       currentWordAdd: "",
       wordsAdded: 0,
-      wordsMax: 13,
+      wordsMax: 7,
       master: false,
       id: -1,
-      game: null
+      game: null,
+      clicked: false
     };
   },
   mounted() {
     //Setup Websockets
-    //s://chainreactionserver.herokuapp.com
-    this.socket = new WebSocket(`wss://chainreactionserver.herokuapp.com`);
+    //s://chainreactionserver.herokuapp.com wss://chainreactionserver.herokuapp.com
+    this.socket = new WebSocket(`ws://localhost:3000`);
     this.socket.onopen = async () => {
       console.log("SENDING ");
       let id = this.$route.params.id;
@@ -448,6 +519,8 @@ export default {
     };
     this.socket.onmessage = event => {
       let data = JSON.parse(event.data);
+      this.clicked = false;
+      console.log(data.type);
       switch (data.type) {
         case "updateID":
           this.id = data.id;
@@ -471,12 +544,13 @@ export default {
             });
           }
           break;
+        case "reset":
+          window.location.reload();
+          break;
         case "updateState":
           if (this.myName != "" && data.data.id == this.id) {
-            if (JSON.parse(data.data.state) != "GAME_OVER") {
-              this.game = data.data;
-              console.log(data.data);
-            }
+            this.game = data.data;
+            console.log(data.data);
             if (
               JSON.parse(data.data.state) == "TEAM2_GUESS" ||
               JSON.parse(data.data.state) == "TEAM1_GUESS"
@@ -510,6 +584,7 @@ export default {
   },
   methods: {
     skip() {
+      this.clicked = true;
       this.socket.send(
         JSON.stringify({
           type: "skipWord",
@@ -517,19 +592,30 @@ export default {
         })
       );
     },
+    reset() {
+      this.clicked = true;
+      this.socket.send(
+        JSON.stringify({
+          type: "reset",
+          id: this.id
+        })
+      );
+    },
     wrongnext() {
+      this.clicked = true;
       this.wrong();
       setTimeout(() => {
-        this.guessPause();
+        this.continueNext();
       }, 2);
     },
     corrnext() {
       this.next();
       setTimeout(() => {
-        this.guessPause();
+        this.continueNext();
       }, 2);
     },
     next() {
+      this.clicked = true;
       this.socket.send(
         JSON.stringify({
           type: "wordCorrect",
@@ -538,6 +624,7 @@ export default {
       );
     },
     wrong() {
+      this.clicked = true;
       this.socket.send(
         JSON.stringify({
           type: "wordIncorrect",
@@ -545,7 +632,7 @@ export default {
         })
       );
     },
-    guessPause() {
+    continueNext() {
       this.socket.send(
         JSON.stringify({
           type: "readyPause",
@@ -642,11 +729,15 @@ export default {
         );
         this.playerName = true;
         console.log("Getting data...");
+        this.socket.send(JSON.stringify({ type: "getData", id: this.id }));
         setTimeout(() => {
-          this.socket.send(
-            JSON.stringify({ type: "switchTeams", id: this.id })
-          );
-        }, 200);
+          if (this.game != null && this.game.state == '"WAIT_FOR_PLAYERS"') {
+            console.log("WAIT INTENT");
+            this.socket.send(
+              JSON.stringify({ type: "switchTeams", id: this.id })
+            );
+          }
+        }, 300);
       }
     },
     wordValidator: value => {
@@ -661,6 +752,19 @@ export default {
     }
   },
   computed: {
+    hasClicked() {
+      if (this.clicked) {
+        return "clicked";
+      }
+      return "";
+    },
+    firstRound() {
+      let guesser = this.game.guesser.split("-");
+      if (Number(guesser[0]) + Number(guesser[1]) <= 3) {
+        return true;
+      }
+      return false;
+    },
     inActiveTeam() {
       if (JSON.parse(this.game.state) == `TEAM2_GUESS`) {
         if (JSON.parse(this.game.team2).includes(this.myName)) {
@@ -690,9 +794,9 @@ export default {
       return JSON.parse(this.game.team1);
     },
     membersInInactiveTeam() {
-     let guesser=this.game.guesser.split("-");
-     if (Number(guesser[0])<=Number(guesser[1])) {
-          return JSON.parse(this.game.team1);
+      let guesser = this.game.guesser.split("-");
+      if (Number(guesser[0]) <= Number(guesser[1])) {
+        return JSON.parse(this.game.team1);
       } else {
         return JSON.parse(this.game.team2);
       }
@@ -748,6 +852,9 @@ export default {
     color: #f77c60;
   }
 }
+.end {
+  display: inline-block;
+}
 .db {
   display: inline-block;
   font-size: 4vw;
@@ -773,6 +880,9 @@ export default {
   @include for-desktop-up() {
     font-size: 5vw;
   }
+}
+.clicked {
+  display: none;
 }
 .bb {
   width: 80%;

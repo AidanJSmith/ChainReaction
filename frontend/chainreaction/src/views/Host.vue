@@ -7,7 +7,7 @@
             <h1 class="display-3 mx-auto font-weight-black logo">
               CHAIN REACTION
             </h1>
-            <h3 class="display-1 mx-auto logo">v1.4</h3>
+            <h3 class="display-1 mx-auto logo">v2.0</h3>
           </div>
         </v-row>
         <v-col cols="12" sm="6" md="3" class="mx-auto">
@@ -58,21 +58,30 @@ export default {
 };
 </script>
 <style lang="scss">
-
 @mixin for-phone-only {
-  @media (max-width: 599px) { @content; }
+  @media (max-width: 599px) {
+    @content;
+  }
 }
 @mixin for-tablet-portrait-up {
-  @media (min-width: 600px) { @content; }
+  @media (min-width: 600px) {
+    @content;
+  }
 }
 @mixin for-tablet-landscape-up {
-  @media (min-width: 900px) { @content; }
+  @media (min-width: 900px) {
+    @content;
+  }
 }
 @mixin for-desktop-up {
-  @media (min-width: 1200px) { @content; }
+  @media (min-width: 1200px) {
+    @content;
+  }
 }
 @mixin for-big-desktop-up {
-  @media (min-width: 1800px) { @content; }
+  @media (min-width: 1800px) {
+    @content;
+  }
 }
 
 .logo {
@@ -90,7 +99,7 @@ export default {
 .enter {
   transform: scale(1);
   @include for-phone-only() {
-      transform: 1;
+    transform: 1;
   }
 }
 .home {
@@ -98,5 +107,4 @@ export default {
   height: 100%;
   background: rgb(96, 247, 209);
 }
-
 </style>
