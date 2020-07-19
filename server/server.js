@@ -7,22 +7,14 @@ const ServerRepository = require('./server_repository')
 var express = require('express');
 var path = require('path');
 var serveStatic = require('serve-static');
-const { expressCspHeader, INLINE, NONE, SELF } = require('express-csp-header');
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
+const INDEX = '/index.html';
 
-const server = express();
-server.use(express.static('dist'));
-server.use(expressCspHeader({
-    directives: {
-        'default-src': [SELF],
-        'script-src': [SELF, INLINE],
-        'style-src': [SELF],
-        'worker-src': [SELF],
-        'block-all-mixed-content': false
-    }
-}));
-server.listen(PORT, () => console.log(`Listening on ${PORT}`));
+const server = express()
+  .use(express.static('dist'))
+  .listen(PORT, () => console.log(`Listening on ${PORT}`))
+  
 
 const wss = new Server({ server });
 const dao = new AppDAO('./database.sqlite3')
@@ -126,7 +118,7 @@ wss.on('connection', (ws,req) => {
             } 
             console.log("Working")
             db.nextWord(message.id,readyCallback);
-            setTimeout(() => {db.pause(message.id,goPause)},4500);
+            setTimeout(() => {db.pause(message.id,goPause)},45000);
             break;
         case "readyPause":
             console.log("ReadyPause Recieved")
@@ -139,7 +131,7 @@ wss.on('connection', (ws,req) => {
                 db.getMyServer(message.id,updateState);
             } 
             readyCallback();
-            setTimeout(() => {db.pause(message.id,goPause)},9000);
+            setTimeout(() => {db.pause(message.id,goPause)},90000);
             break;
         case "unready":
             db.unready(message.id);
