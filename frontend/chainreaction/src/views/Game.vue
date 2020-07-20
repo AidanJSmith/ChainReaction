@@ -495,7 +495,7 @@ export default {
       words: [],
       currentWordAdd: "",
       wordsAdded: 0,
-      wordsMax: 7,
+      wordsMax: 2,
       master: false,
       id: -1,
       game: null,
@@ -532,16 +532,19 @@ export default {
           console.log("Server online.");
           break;
         case "patchCorrectIncorrect":
-          console.log(data.data);
+          console.log(data,data.data.id);
           if (this.myName != "" && data.data.id == this.id) {
-            console.log("working....");
-            console.log(data.data.incorrectword);
+            console.log("PATCHING")
+            data.data.incorrectwords=JSON.parse(data.data.incorrectwords);
+            data.data.correctwords=JSON.parse(data.data.correctwords);
+            this.game = data.data;
             this.incorrectWordsCurrent = data.data.incorrectwords.filter(x => {
               return !this.backupIncorrectWords.includes(x);
             });
-            this.correctWordsCurrent = data.data.correctwords.filter(x => {
-              return !this.backupCorrectWords.includes(x);
+            this.correctWordsCurrent =  data.data.correctwords.filter(x => { return !this.backupCorrectWords.includes(x);
             });
+            this.incorrectWordsLast = data.data.incorrectwords;
+            this.correctWordsLast = data.data.correctwords;
           }
           break;
         case "reset":
@@ -557,8 +560,9 @@ export default {
             ) {
               this.lastState = data.data.state;
             }
-            if (JSON.parse(data.data.state) == "PAUSE") {
+            if (JSON.parse(data.data.state) == "PAUSE" && Number(data.data.guesser.split("-")[0])+Number(data.data.guesser.split("-")[1])>3) {
               //Get used words, Remove all in old array, leaving only new ones.
+              console.log("Going to pause.")
               this.backupIncorrectWords = this.incorrectWordsLast;
               this.backupCorrectWords = this.correctWordsLast;
               this.incorrectWordsCurrent = JSON.parse(
