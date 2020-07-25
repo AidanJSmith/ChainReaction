@@ -37,8 +37,11 @@ function resetState(message,id=0) {
 function getServerReset(id) {
     db.getMyServer(id,resetState);
 }
-function patchState(message,id=0) { // Change words in place, for things like editing if a word was correct or not.
+function patchSecondary(message,id=0) {
     wss.broadcast(JSON.stringify({type:"patchCorrectIncorrect",data:message}));
+}
+function patchState(id=0) { // Change words in place, for things like editing if a word was correct or not.
+    db.getMyServer(id,patchSecondary);
 }
 function getServerUpdateState(id) {
     db.getMyServer(id,updateState);
@@ -118,7 +121,7 @@ wss.on('connection', (ws,req) => {
             } 
             console.log("Working")
             db.nextWord(message.id,readyCallback);
-            setTimeout(() => {db.pause(message.id,goPause)},45000);
+            setTimeout(() => {db.pause(message.id,goPause)},4500);
             break;
         case "readyPause":
             console.log("ReadyPause Recieved")
@@ -131,7 +134,7 @@ wss.on('connection', (ws,req) => {
                 db.getMyServer(message.id,updateState);
             } 
             readyCallback();
-            setTimeout(() => {db.pause(message.id,goPause)},90000);
+            setTimeout(() => {db.pause(message.id,goPause)},9000);
             break;
         case "unready":
             db.unready(message.id);

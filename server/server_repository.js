@@ -113,7 +113,7 @@ class ServerRepository {
             this.dao.run(`UPDATE servers SET words = ? WHERE id = ?`,
                 [JSON.stringify(words), serverID]
             ).then(data => {
-                if (players.length*7 == words.length) {
+                if (players.length*2 == words.length) {
                     console.log("Going to pause.")
                     pause(serverID)
                 } 
@@ -345,7 +345,8 @@ class ServerRepository {
             ).then(() => {
                 console.log("Swapped (F/T)")
                 console.log("SCORE_CHANGED" + score.join("-"));
-                callback({"correctwords":data.correctwords,"incorrectwords":data.incorrectwords, "id":id},id);
+                callback(id);
+                //callback({"correctwords":data.correctwords,"incorrectwords":data.incorrectwords, "id":id},id);
             })
             
         });
@@ -379,7 +380,8 @@ class ServerRepository {
             ).then(() => {
                 console.log("SCORE_CHANGED" + score.join("-"));
                 console.log("Swapped (T/F)")
-                callback({"correctwords":data.correctwords,"incorrectwords":data.incorrectwords, "id":id},id);
+                callback(id);
+                //callback({"correctwords":data.correctwords,"incorrectwords":data.incorrectwords, "id":id},id);
             })
             
         });

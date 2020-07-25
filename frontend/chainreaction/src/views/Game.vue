@@ -495,7 +495,8 @@ export default {
       words: [],
       currentWordAdd: "",
       wordsAdded: 0,
-      wordsMax: 2,
+      wordsMax: 7,
+      goneToPause:false,
       master: false,
       id: -1,
       game: null,
@@ -505,7 +506,7 @@ export default {
   mounted() {
     //Setup Websockets
     //s://chainreactionserver.herokuapp.com wss://chainreactionserver.herokuapp.com
-    this.socket = new WebSocket(`ws://localhost:3000`);
+    this.socket = new WebSocket(`wss://chainreactionserver.herokuapp.com`);
     this.socket.onopen = async () => {
       console.log("SENDING ");
       let id = this.$route.params.id;
@@ -560,9 +561,13 @@ export default {
             ) {
               this.lastState = data.data.state;
             }
-            if (JSON.parse(data.data.state) == "PAUSE" && Number(data.data.guesser.split("-")[0])+Number(data.data.guesser.split("-")[1])>3) {
+            if (JSON.parse(data.data.state)!== "PAUSE") {
+              this.goneToPause=false;
+            }
+            if (JSON.parse(data.data.state) == "PAUSE" && Number(data.data.guesser.split("-")[0])+Number(data.data.guesser.split("-")[1])>3 && !this.goneToPause) {
               //Get used words, Remove all in old array, leaving only new ones.
               console.log("Going to pause.")
+              this.goneToPause=true;
               this.backupIncorrectWords = this.incorrectWordsLast;
               this.backupCorrectWords = this.correctWordsLast;
               this.incorrectWordsCurrent = JSON.parse(
