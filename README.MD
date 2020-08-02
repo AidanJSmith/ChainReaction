@@ -2,11 +2,10 @@
 
 ## Description
 
-This is an online game built on Express, Websockets, Vue, Sqlite, Heroku, and Node.js. It was designed and written entirely within two days\* (save for modifications to allow for hosting), leading to multiple dubious coding habits. Chain Reaction, a game popular among my family and our family friends translates notoriously poorly over an internet connection due to the variety of shared information. In order to compensate for that, I gave myself a two day\* mini challenge to write this platform as quickly as possible. I'd like to reiterate that this is *not* final code, and although it does work well and can handle a variety of clients and servers in a plethora of cases, there are bound to be others I simply couldn't catch in my limited coding period. If you don't already know how to play Chain Reaction, this isn't designed with you in mind, but if you'd like to learn, feel free to email me. The current client (with the bare minimum CSS styling to keep it looking somewhat modern and mobile compliant) can be found [here](https://chainreaction-994c5.web.app/#/).
+This is an online game built on Express, Websockets, Vue, Sqlite, Heroku, and Node.js. It's recently gone through a partial rewrite and  been adapted to be better scalable and to have less problematic bugs. The hosting has diverged from firebase and heroku to just the latter, so running it locally is simpler now too. This party game was a great deal of fun with my family friends, so I adapted it to better fit the world during the pandemic. There may still be a few bugs, but it's largely functional now.
 
 All of this code was written from scratch and is free and open to the public for personal or commercial use.
 
-\* The bulk of the actual coding was done in this time period.  This very well may have changed since the current release, too.
 
 ## Running on Your Machine
 
@@ -16,9 +15,9 @@ Simply cd into the server directory and:
 node server.js
 ```
 
-This file was designed with compatibility for heroku in mind, but will default to port 3000 if not hosted on a dyno. See the DAO for further details on database implementations and asynchronicity.
+This file was designed with compatibility for heroku in mind, but will default to port 3000 if not hosted on a dyno. See the DAO for further details on database implementations and asynchronicity. It hosts an HTTP server and Websocket client by default.
 
-Want to run or modify the frontend? Just cd into the frontend/chainreaction  and
+Want to run or modify the frontend? Just cd into the frontend/chainreaction, build it when you're done, and move it to the hosting directory.
 
 ```shell
 npm run serve
