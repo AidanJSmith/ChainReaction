@@ -28,6 +28,6 @@
     "express-csp-header": "^4.0.0",
     "sqlite3": "^4.2.0",
     "utf-8-validate": "^5.0.2",
-    "ws": "^7.3.0"
+    "ws": "^7.4.6"
   }
 }
