@@ -1,4 +1,6 @@
 # Chain Reaction Online
+The rapturous party game — brought to life in time for the pandemic.
+<img width="1500" alt="image" src="https://user-images.githubusercontent.com/26717362/189539204-ad4a6524-5ead-4414-878e-f4ab3624f26f.png">
 
 ## Description
 
